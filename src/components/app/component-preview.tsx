@@ -28,69 +28,105 @@ export function ComponentPreview({
   onBack,
   onFrameworkChange,
 }: ComponentPreviewProps) {
-  const iframeSrcDoc = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <style>
-            :root {
-                --background: 240 6% 10%;
-                --foreground: 0 0% 98%;
-                --card: 240 6% 10%;
-                --card-foreground: 0 0% 98%;
-                --popover: 240 6% 10%;
-                --popover-foreground: 0 0% 98%;
-                --primary: 0 0% 98%;
-                --primary-foreground: 240 5.9% 10%;
-                --secondary: 240 3.7% 15.9%;
-                --secondary-foreground: 0 0% 98%;
-                --muted: 240 3.7% 15.9%;
-                --muted-foreground: 240 5% 64.9%;
-                --accent: 240 3.7% 15.9%;
-                --accent-foreground: 0 0% 98%;
-                --destructive: 0 62.8% 30.6%;
-                --destructive-foreground: 0 0% 98%;
-                --border: 240 3.7% 15.9%;
-                --input: 240 3.7% 15.9%;
-                --ring: 240 4.9% 83.9%;
-            }
-            html.dark {
-                --background: 240 6% 10%;
-                --foreground: 0 0% 98%;
-                --card: 240 6% 10%;
-                --card-foreground: 0 0% 98%;
-                --popover: 240 6% 10%;
-                --popover-foreground: 0 0% 98%;
-                --primary: 0 0% 98%;
-                --primary-foreground: 240 5.9% 10%;
-                --secondary: 240 3.7% 15.9%;
-                --secondary-foreground: 0 0% 98%;
-                --muted: 240 3.7% 15.9%;
-                --muted-foreground: 240 5% 64.9%;
-                --accent: 240 3.7% 15.9%;
-                --accent-foreground: 0 0% 98%;
-                --destructive: 0 62.8% 30.6%;
-                --destructive-foreground: 0 0% 98%;
-                --border: 240 3.7% 15.9%;
-                --input: 240 3.7% 15.9%;
-                --ring: 240 4.9% 83.9%;
-            }
-            body { 
-              background-color: hsl(var(--background));
-              color: hsl(var(--foreground));
-              font-family: Inter, sans-serif;
-            }
-        </style>
-      </head>
-      <body class="dark">
-        <div class="flex items-center justify-center w-full h-full min-h-screen p-4">
-          ${code}
-        </div>
-      </body>
-    </html>
-  `;
+  const getIframeSrcDoc = () => {
+    const baseStyles = `
+      :root {
+          --background: 240 6% 10%;
+          --foreground: 0 0% 98%;
+          --card: 240 6% 10%;
+          --card-foreground: 0 0% 98%;
+          --popover: 240 6% 10%;
+          --popover-foreground: 0 0% 98%;
+          --primary: 0 0% 98%;
+          --primary-foreground: 240 5.9% 10%;
+          --secondary: 240 3.7% 15.9%;
+          --secondary-foreground: 0 0% 98%;
+          --muted: 240 3.7% 15.9%;
+          --muted-foreground: 240 5% 64.9%;
+          --accent: 240 3.7% 15.9%;
+          --accent-foreground: 0 0% 98%;
+          --destructive: 0 62.8% 30.6%;
+          --destructive-foreground: 0 0% 98%;
+          --border: 240 3.7% 15.9%;
+          --input: 240 3.7% 15.9%;
+          --ring: 240 4.9% 83.9%;
+      }
+      html.dark {
+          --background: 240 6% 10%;
+          --foreground: 0 0% 98%;
+          --card: 240 6% 10%;
+          --card-foreground: 0 0% 98%;
+          --popover: 240 6% 10%;
+          --popover-foreground: 0 0% 98%;
+          --primary: 0 0% 98%;
+          --primary-foreground: 240 5.9% 10%;
+          --secondary: 240 3.7% 15.9%;
+          --secondary-foreground: 0 0% 98%;
+          --muted: 240 3.7% 15.9%;
+          --muted-foreground: 240 5% 64.9%;
+          --accent: 240 3.7% 15.9%;
+          --accent-foreground: 0 0% 98%;
+          --destructive: 0 62.8% 30.6%;
+          --destructive-foreground: 0 0% 98%;
+          --border: 240 3.7% 15.9%;
+          --input: 240 3.7% 15.9%;
+          --ring: 240 4.9% 83.9%;
+      }
+      body { 
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-family: Inter, sans-serif;
+      }
+    `;
 
+    if (framework === 'react') {
+      return `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+            <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+            <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+            <style>${baseStyles}</style>
+          </head>
+          <body class="dark">
+            <div id="root" class="flex items-center justify-center w-full h-full min-h-screen p-4"></div>
+            <script type="text/babel">
+              const App = () => {
+                ${code
+                  .replace(/^import\s.*?;/gm, '')
+                  .replace(/export\s+default\s+\w+;?/m, '')
+                  .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ')}
+                const Component = ${code.match(/export\s+default\s+(\w+)/)?.[1] || '() => null'};
+                return <Component />;
+              };
+              ReactDOM.render(<App />, document.getElementById('root'));
+            </script>
+          </body>
+        </html>
+      `;
+    }
+
+    // Fallback for HTML and Vue (or other frameworks)
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>${baseStyles}</style>
+        </head>
+        <body class="dark">
+          <div class="flex items-center justify-center w-full h-full min-h-screen p-4">
+            ${code}
+          </div>
+        </body>
+      </html>
+    `;
+  };
+
+  const iframeSrcDoc = getIframeSrcDoc();
+  
   const renderContent = () => {
     if (isLoading && !code) {
       return (
