@@ -38,7 +38,7 @@ import { Header } from './header';
 export type Framework = 'react' | 'vue' | 'html';
 
 const suggestionButtons = [
-  { icon: Layout, text: 'Landing Page', prompt: 'A modern landing page with a hero section and features list.' },
+  { icon: Layout, text: 'Landing Page', prompt: 'A professional landing page for a SaaS product. It should include a navigation bar, a hero section with a call-to-action, a features section with three columns, a pricing table with three tiers, a customer testimonials section, and a footer.' },
   { icon: CodeXml, text: 'Sign Up Form', prompt: 'A sign up form with email and password fields, and a submit button.' },
   { icon: Camera, text: 'Image-based', prompt: 'A card component based on an image of a product.' },
   { icon: Figma, text: 'Figma-inspired', prompt: 'A dashboard sidebar navigation inspired by Figma\'s UI.' },
