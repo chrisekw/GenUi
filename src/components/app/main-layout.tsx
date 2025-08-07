@@ -14,7 +14,7 @@ import {
   CodeXml,
   Figma,
   Layout,
-  Link as LinkIcon,
+  Paperclip,
   Menu,
 } from 'lucide-react';
 import { Logo } from '../icons/logo';
@@ -51,6 +51,7 @@ export function MainLayout() {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const [galleryItems, setGalleryItems] = React.useState<GalleryItem[]>([]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const onGenerate = async (currentPrompt: string) => {
     if (!currentPrompt) {
@@ -92,6 +93,23 @@ export function MainLayout() {
     onGenerate(item.prompt);
   };
   
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Handle the file upload here.
+      // For now, let's just log the file name to the console.
+      console.log('Uploaded file:', file.name);
+      toast({
+        title: 'File uploaded',
+        description: `${file.name} has been uploaded.`,
+      });
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const Header = () => (
     <header className="flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
     <div className="flex items-center gap-4">
@@ -147,8 +165,14 @@ export function MainLayout() {
             className="bg-background border rounded-lg p-4 pr-24 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
           />
           <div className="absolute bottom-3 right-3 flex items-center gap-2">
-            <Button variant="ghost" size="icon">
-              <LinkIcon />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <Button variant="ghost" size="icon" onClick={handleUploadClick}>
+              <Paperclip />
             </Button>
             <Button size="icon" onClick={() => onGenerate(prompt)} disabled={isLoading}>
               <ArrowUp />
