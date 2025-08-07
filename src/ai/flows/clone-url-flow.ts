@@ -26,7 +26,8 @@ const getUrlContentTool = ai.defineTool(
         }
         return await response.text();
       } catch (e: any) {
-        return `Failed to fetch content from ${url}: ${e.message}`;
+        // Throw an error to be caught by the flow's error handler
+        throw new Error(`Failed to fetch content from ${url}: ${e.message}`);
       }
     }
 );
