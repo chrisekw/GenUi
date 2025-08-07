@@ -27,9 +27,9 @@ import {
   SheetContent,
   SheetHeader,
   SheetTrigger,
+  SheetTitle
 } from '@/components/ui/sheet';
 import { ComponentPreview } from './component-preview';
-import { DialogTitle } from '@radix-ui/react-dialog';
 
 export type Framework = 'react' | 'vue' | 'html';
 
@@ -40,53 +40,17 @@ const suggestionButtons = [
   { icon: CodeXml, text: 'Sign Up Form', prompt: 'A sign up form with email and password fields, and a submit button.' },
 ];
 
-export function MainLayout() {
-  const [framework, setFramework] = React.useState<Framework>('react');
-  const [prompt, setPrompt] = React.useState('');
-  const [generatedCode, setGeneratedCode] = React.useState('');
-  const [layoutSuggestions, setLayoutSuggestions] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isSidebarOpen, setSidebarOpen] = React.useState(false);
-  const [activeView, setActiveView] = React.useState('prompt'); // 'prompt' or 'preview'
-  const isMobile = useIsMobile();
-  const { toast } = useToast();
-  const [galleryItems, setGalleryItems] = React.useState<GalleryItem[]>([]);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+interface PromptViewProps {
+  prompt: string;
+  setPrompt: (prompt: string) => void;
+  onGenerate: (prompt: string, framework: Framework) => void;
+  isLoading: boolean;
+  framework: Framework;
+  galleryItems: GalleryItem[];
+}
 
-  const onGenerate = async (currentPrompt: string, currentFramework: Framework) => {
-    if (!currentPrompt) {
-      toast({
-        title: 'Prompt is empty',
-        description: 'Please enter a prompt to generate a component.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    setIsLoading(true);
-    setGeneratedCode('');
-    setLayoutSuggestions('');
-    if (activeView !== 'preview') {
-      setActiveView('preview');
-    }
-    
-    try {
-      const result = await handleGenerateComponent(currentPrompt, currentFramework);
-      setGeneratedCode(result.code);
-      setLayoutSuggestions(result.suggestions);
-      setFramework(currentFramework);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: 'Error generating component',
-        description:
-          'There was an error generating the component. Please try again.',
-        variant: 'destructive',
-      });
-      setGeneratedCode('');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galleryItems }: PromptViewProps) {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleSuggestionClick = (item: { text: string, prompt: string}) => {
     const newPrompt = item.prompt;
@@ -106,66 +70,14 @@ export function MainLayout() {
       // Handle the file upload here.
       // For now, let's just log the file name to the console.
       console.log('Uploaded file:', file.name);
-      toast({
-        title: 'File uploaded',
-        description: `${file.name} has been uploaded.`,
-      });
     }
   };
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
-  
-  const handleFrameworkChange = (newFramework: Framework) => {
-    setFramework(newFramework);
-    if(prompt) {
-      onGenerate(prompt, newFramework);
-    }
-  }
 
-  const Header = () => (
-    <header className="flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
-    <div className="flex items-center gap-4">
-      {isMobile ? (
-        <Sheet open={isSidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-full max-w-xs">
-            <SheetHeader>
-              <DialogTitle>
-                <div className="flex items-center gap-2 py-4">
-                  <Logo />
-                  <span className="text-xl font-semibold">GenUI</span>
-                </div>
-              </DialogTitle>
-            </SheetHeader>
-            <nav className="flex flex-col gap-2">
-              {/* Add mobile navigation items here */}
-            </nav>
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <div className="flex items-center gap-2">
-          <Logo />
-           <h1 className="text-xl font-semibold">GenUi</h1>
-        </div>
-      )}
-    </div>
-
-    <div className="flex items-center gap-4">
-      <Avatar className="h-8 w-8">
-        <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-        <AvatarFallback>CN</AvatarFallback>
-      </Avatar>
-    </div>
-  </header>
-  );
-
-  const PromptView = () => (
+  return (
     <div className="flex flex-col items-center justify-center h-full p-4 md:p-6">
       <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
         <h1 className="text-4xl md:text-5xl font-medium text-center tracking-tight">
@@ -238,12 +150,115 @@ export function MainLayout() {
       </div>
     </div>
   );
+}
+
+export function MainLayout() {
+  const [framework, setFramework] = React.useState<Framework>('react');
+  const [prompt, setPrompt] = React.useState('');
+  const [generatedCode, setGeneratedCode] = React.useState('');
+  const [layoutSuggestions, setLayoutSuggestions] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isSidebarOpen, setSidebarOpen] = React.useState(false);
+  const [activeView, setActiveView] = React.useState('prompt'); // 'prompt' or 'preview'
+  const isMobile = useIsMobile();
+  const { toast } = useToast();
+  const [galleryItems, setGalleryItems] = React.useState<GalleryItem[]>([]);
   
+  const onGenerate = async (currentPrompt: string, currentFramework: Framework) => {
+    if (!currentPrompt) {
+      toast({
+        title: 'Prompt is empty',
+        description: 'Please enter a prompt to generate a component.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setIsLoading(true);
+    setGeneratedCode('');
+    setLayoutSuggestions('');
+    if (activeView !== 'preview') {
+      setActiveView('preview');
+    }
+    
+    try {
+      const result = await handleGenerateComponent(currentPrompt, currentFramework);
+      setGeneratedCode(result.code);
+      setLayoutSuggestions(result.suggestions);
+      setFramework(currentFramework);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Error generating component',
+        description:
+          'There was an error generating the component. Please try again.',
+        variant: 'destructive',
+      });
+      setGeneratedCode('');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleFrameworkChange = (newFramework: Framework) => {
+    setFramework(newFramework);
+    if(prompt) {
+      onGenerate(prompt, newFramework);
+    }
+  }
+
+  const Header = () => (
+    <header className="flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
+    <div className="flex items-center gap-4">
+      {isMobile ? (
+        <Sheet open={isSidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-full max-w-xs">
+            <SheetHeader>
+              <SheetTitle>
+                <div className="flex items-center gap-2 py-4">
+                  <Logo />
+                  <span className="text-xl font-semibold">GenUI</span>
+                </div>
+              </SheetTitle>
+            </SheetHeader>
+            <nav className="flex flex-col gap-2">
+              {/* Add mobile navigation items here */}
+            </nav>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <div className="flex items-center gap-2">
+          <Logo />
+           <h1 className="text-xl font-semibold">GenUi</h1>
+        </div>
+      )}
+    </div>
+
+    <div className="flex items-center gap-4">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+        <AvatarFallback>CN</AvatarFallback>
+      </Avatar>
+    </div>
+  </header>
+  );
+
   return (
     <div className="flex flex-col h-screen bg-background">
       <Header />
       <main className="flex-1 overflow-y-auto">
-        {activeView === 'prompt' && <PromptView />}
+        {activeView === 'prompt' && <PromptView 
+            prompt={prompt}
+            setPrompt={setPrompt}
+            onGenerate={onGenerate}
+            isLoading={isLoading}
+            framework={framework}
+            galleryItems={galleryItems}
+        />}
         {activeView === 'preview' && (
           <ComponentPreview
             code={generatedCode}
