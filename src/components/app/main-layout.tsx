@@ -137,7 +137,7 @@ export function MainLayout() {
       ) : (
         <div className="flex items-center gap-2">
           <Logo />
-           <h1 className="text-xl font-semibold">GenUI</h1>
+           <h1 className="text-xl font-semibold">GenUi</h1>
         </div>
       )}
     </div>
@@ -159,7 +159,7 @@ export function MainLayout() {
         </h1>
         <div className="relative">
           <Textarea
-            placeholder="A pricing card with three tiers..."
+            placeholder="I want to type my inputs here"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             className="bg-background border rounded-lg p-4 pr-24 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
