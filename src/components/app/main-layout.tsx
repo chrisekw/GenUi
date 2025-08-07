@@ -17,6 +17,7 @@ import {
   Upload,
   Menu,
   Eye,
+  X,
 } from 'lucide-react';
 import { Logo } from '../icons/logo';
 import Image from 'next/image';
@@ -46,13 +47,15 @@ const suggestionButtons = [
 interface PromptViewProps {
   prompt: string;
   setPrompt: (prompt: string) => void;
-  onGenerate: (prompt: string, framework: Framework) => void;
+  onGenerate: (prompt: string, framework: Framework, imageUrl?: string) => void;
   isLoading: boolean;
   framework: Framework;
   galleryItems: GalleryItem[];
+  imageUrl: string | null;
+  setImageUrl: (url: string | null) => void;
 }
 
-function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galleryItems }: PromptViewProps) {
+function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galleryItems, imageUrl, setImageUrl }: PromptViewProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleSuggestionClick = (item: { text: string, prompt: string}) => {
@@ -69,15 +72,24 @@ function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galle
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Handle the file upload here.
-      // For now, let's just log the file name to the console.
-      console.log('Uploaded file:', file.name);
+      const reader = new FileReader();
+      reader.onload = (loadEvent) => {
+        setImageUrl(loadEvent.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
+  
+  const handleRemoveImage = () => {
+    setImageUrl(null);
+    if(fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  }
 
   const getIframeSrcDoc = (code: string) => {
     const baseStyles = `
@@ -162,6 +174,14 @@ function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galle
         <h1 className="text-4xl md:text-5xl font-medium text-center tracking-tight">
           What can I help you build?
         </h1>
+        {imageUrl && (
+            <div className="relative w-full max-w-sm mx-auto">
+                <Image src={imageUrl} alt="Uploaded component" width={400} height={300} className="rounded-lg object-contain" />
+                <Button variant="destructive" size="icon" className="absolute top-2 right-2" onClick={handleRemoveImage}>
+                    <X className="h-4 w-4" />
+                </Button>
+            </div>
+        )}
         <div className="relative">
           <Textarea
             placeholder="A pricing card with three tiers and a call to action button."
@@ -175,11 +195,12 @@ function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galle
               ref={fileInputRef}
               onChange={handleFileChange}
               className="hidden"
+              accept="image/*"
             />
             <Button variant="ghost" size="icon" onClick={handleUploadClick}>
               <Upload />
             </Button>
-            <Button size="icon" onClick={() => onGenerate(prompt, framework)} disabled={isLoading}>
+            <Button size="icon" onClick={() => onGenerate(prompt, framework, imageUrl || undefined)} disabled={isLoading}>
               <ArrowUp />
             </Button>
           </div>
@@ -247,6 +268,7 @@ export function MainLayout() {
   const [layoutSuggestions, setLayoutSuggestions] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const [activeView, setActiveView] = React.useState('prompt'); // 'prompt' or 'preview'
+  const [imageUrl, setImageUrl] = React.useState<string | null>(null);
   const { toast } = useToast();
   const [galleryItems, setGalleryItems] = React.useState<GalleryItem[]>([]);
   
@@ -260,7 +282,7 @@ export function MainLayout() {
     }
   }, [activeView]);
 
-  const onGenerate = async (currentPrompt: string, currentFramework: Framework) => {
+  const onGenerate = async (currentPrompt: string, currentFramework: Framework, currentImageUrl?: string) => {
     if (!currentPrompt) {
       toast({
         title: 'Prompt is empty',
@@ -277,11 +299,14 @@ export function MainLayout() {
     }
     
     try {
-      const result = await handleGenerateComponent(currentPrompt, currentFramework);
+      const result = await handleGenerateComponent({ prompt: currentPrompt, framework: currentFramework, imageUrl: currentImageUrl });
       setGeneratedCode(result.code);
       setLayoutSuggestions(result.suggestions);
       setFramework(currentFramework);
       setPrompt(currentPrompt);
+      if (currentImageUrl) {
+        setImageUrl(currentImageUrl);
+      }
     } catch (error) {
       console.error(error);
       toast({
@@ -299,7 +324,7 @@ export function MainLayout() {
   const handleFrameworkChange = (newFramework: Framework) => {
     setFramework(newFramework);
     if(prompt && generatedCode) {
-      onGenerate(prompt, newFramework);
+      onGenerate(prompt, newFramework, imageUrl || undefined);
     }
   }
 
@@ -318,6 +343,8 @@ export function MainLayout() {
             isLoading={isLoading}
             framework={framework}
             galleryItems={galleryItems}
+            imageUrl={imageUrl}
+            setImageUrl={setImageUrl}
         />}
         {activeView === 'preview' && (
           <ComponentPreview

@@ -1,17 +1,16 @@
 'use server';
 
-import { generateUiComponent } from '@/ai/flows/generate-ui-component';
+import { generateUiComponent, GenerateUiComponentInput } from '@/ai/flows/generate-ui-component';
 import { optimizeComponentLayout } from '@/ai/flows/optimize-component-layout';
 import { galleryItems, type GalleryItem } from '@/lib/gallery-items';
 
 export async function handleGenerateComponent(
-  prompt: string,
-  framework: 'react' | 'vue' | 'html'
+  input: GenerateUiComponentInput
 ) {
   try {
     const [componentResult, layoutResult] = await Promise.all([
-      generateUiComponent({ prompt, framework }),
-      optimizeComponentLayout({ componentPrompt: prompt, framework }),
+      generateUiComponent(input),
+      optimizeComponentLayout({ componentPrompt: input.prompt, framework: input.framework }),
     ]);
 
     return {
