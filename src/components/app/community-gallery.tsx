@@ -5,8 +5,12 @@ import * as React from 'react';
 import { type GalleryItem } from '@/lib/gallery-items';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, Copy, ThumbsUp, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { handleGenerateComponent } from '@/app/actions';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CodeDisplay } from './code-display';
 
 interface CommunityGalleryProps {
   galleryItems: GalleryItem[];
@@ -14,16 +18,50 @@ interface CommunityGalleryProps {
 
 export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
   const router = useRouter();
+  const { toast } = useToast();
+  const [loadingStates, setLoadingStates] = React.useState<Record<string, boolean>>({});
+  const [generatedCodes, setGeneratedCodes] = React.useState<Record<string, Record<string, string>>>({});
 
-  const handleGalleryItemClick = (item: GalleryItem) => {
-    // This functionality would ideally set the prompt and generate the component.
-    // For now, we'll just log it. A more robust solution might use a global state manager.
-    console.log('Selected item:', item.prompt);
-    // For demonstration, we could navigate back to the main page with the prompt as a query param
+  const handleUseComponent = (item: GalleryItem) => {
     router.push(`/?prompt=${encodeURIComponent(item.prompt)}`);
   };
 
-  const getIframeSrcDoc = (code: string) => {
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast({
+      title: 'Copied to clipboard!',
+      description: 'The component code has been copied.',
+    });
+  };
+
+  const handleFrameworkChange = async (itemId: string, itemPrompt: string, framework: 'react' | 'vue' | 'html') => {
+    const itemKey = `${itemId}-${framework}`;
+    if (generatedCodes[itemId]?.[framework]) {
+      return;
+    }
+
+    setLoadingStates(prev => ({...prev, [itemKey]: true}));
+    try {
+        const result = await handleGenerateComponent({prompt: itemPrompt, framework});
+        setGeneratedCodes(prev => ({
+            ...prev,
+            [itemId]: {
+                ...prev[itemId],
+                [framework]: result.code,
+            }
+        }));
+    } catch (error) {
+        toast({
+            title: 'Error generating code',
+            description: 'Could not generate code for the selected framework.',
+            variant: 'destructive',
+        });
+    } finally {
+        setLoadingStates(prev => ({...prev, [itemKey]: false}));
+    }
+  }
+
+  const getIframeSrcDoc = (code: string, framework: 'react' | 'vue' | 'html') => {
     const baseStyles = `
       :root {
           --background: 240 6% 10%;
@@ -74,27 +112,44 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
         zoom: 0.5;
       }
     `;
+    
+    if (framework === 'react') {
+        return `
+        <!DOCTYPE html>
+        <html>
+            <head>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+            <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+            <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+            <style>${baseStyles}</style>
+            </head>
+            <body class="dark">
+            <div id="root" class="flex items-center justify-center w-full h-full min-h-screen p-4"></div>
+            <script type="text/babel">
+                ${code
+                .replace(/^import\s.*?;/gm, '')
+                .replace(/export\s+default\s+\w+;?/m, '')
+                .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ')}
+                const Component = ${code.match(/export\s+default\s+(\w+)/)?.[1] || code.match(/export\s+const\s+(\w+)/)?.[1] || '() => null'};
+                ReactDOM.render(<Component />, document.getElementById('root'));
+            </script>
+            </body>
+        </html>
+        `;
+    }
 
     return `
       <!DOCTYPE html>
       <html>
         <head>
           <script src="https://cdn.tailwindcss.com"></script>
-          <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-          <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-          <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
           <style>${baseStyles}</style>
         </head>
         <body class="dark">
-          <div id="root" class="flex items-center justify-center w-full h-full min-h-screen p-4"></div>
-          <script type="text/babel">
-            ${code
-              .replace(/^import\s.*?;/gm, '')
-              .replace(/export\s+default\s+\w+;?/m, '')
-              .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ')}
-            const Component = ${code.match(/export\s+default\s+(\w+)/)?.[1] || code.match(/export\s+const\s+(\w+)/)?.[1] || '() => null'};
-            ReactDOM.render(<Component />, document.getElementById('root'));
-          </script>
+          <div class="flex items-center justify-center w-full h-full min-h-screen p-4">
+            ${code}
+          </div>
         </body>
       </html>
     `;
@@ -108,34 +163,83 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
           <p className="text-muted-foreground mt-2">Explore components created by the community.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {galleryItems.map((item) => (
-            <Card
-              key={item.name}
-              className="cursor-pointer hover:border-primary/50 transition-colors overflow-hidden group"
-              onClick={() => handleGalleryItemClick(item)}
-            >
-              <CardContent className="p-0">
-                <div className="aspect-video overflow-hidden bg-muted relative">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button variant="secondary">
-                      <Eye className="h-4 w-4 mr-2" />
-                      Use Component
-                    </Button>
-                  </div>
-                  <iframe
-                    srcDoc={getIframeSrcDoc(item.code)}
-                    title={item.name}
-                    sandbox="allow-scripts allow-same-origin"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    scrolling="no"
-                  />
-                </div>
-                <div className="p-4">
-                  <p className="font-medium">{item.name}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {galleryItems.map((item, index) => {
+            const itemId = `${item.name}-${index}`;
+            const initialCode = item.code;
+            const codes = { ...generatedCodes[itemId], react: generatedCodes[itemId]?.react || initialCode };
+            
+            return (
+                <Card key={itemId} className="overflow-hidden group flex flex-col">
+                  <Tabs defaultValue="react" className="w-full flex flex-col flex-grow" onValueChange={(fw) => handleFrameworkChange(itemId, item.prompt, fw as any)}>
+                    <CardContent className="p-0 flex-grow">
+                      <div className="aspect-video overflow-hidden bg-muted relative">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Button variant="secondary" onClick={() => handleUseComponent(item)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Use Component
+                          </Button>
+                        </div>
+                        <TabsContent value="react" className="w-full h-full">
+                          <iframe
+                              srcDoc={getIframeSrcDoc(codes['react'] || '', 'react')}
+                              title={`${item.name} - React`}
+                              sandbox="allow-scripts allow-same-origin"
+                              className="w-full h-full object-cover"
+                              scrolling="no"
+                          />
+                        </TabsContent>
+                        <TabsContent value="vue" className="w-full h-full">
+                           {loadingStates[`${itemId}-vue`] ? <div className="flex items-center justify-center h-full">Loading...</div> :
+                            <iframe
+                                srcDoc={getIframeSrcDoc(codes['vue'] || '', 'vue')}
+                                title={`${item.name} - Vue`}
+                                sandbox="allow-scripts allow-same-origin"
+                                className="w-full h-full object-cover"
+                                scrolling="no"
+                            />
+                           }
+                        </TabsContent>
+                        <TabsContent value="html" className="w-full h-full">
+                          {loadingStates[`${itemId}-html`] ? <div className="flex items-center justify-center h-full">Loading...</div> :
+                            <iframe
+                                srcDoc={getIframeSrcDoc(codes['html'] || '', 'html')}
+                                title={`${item.name} - HTML`}
+                                sandbox="allow-scripts allow-same-origin"
+                                className="w-full h-full object-cover"
+                                scrolling="no"
+                            />
+                          }
+                        </TabsContent>
+                      </div>
+                      <div className="p-4 border-b">
+                        <p className="font-medium">{item.name}</p>
+                      </div>
+                      <div className="p-2 flex items-center justify-between">
+                         <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="react">React</TabsTrigger>
+                            <TabsTrigger value="vue">Vue</TabsTrigger>
+                            <TabsTrigger value="html">HTML</TabsTrigger>
+                        </TabsList>
+                      </div>
+                       <div className="p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <Button variant="ghost" size="icon">
+                                    <ThumbsUp className="h-4 w-4"/>
+                                </Button>
+                                 <Button variant="ghost" size="icon">
+                                    <MessageSquare className="h-4 w-4"/>
+                                </Button>
+                            </div>
+                            <Button variant="outline" onClick={() => handleCopyCode(codes[ (document.querySelector(`#${CSS.escape(itemId)} [data-state=active]`) as HTMLElement)?.dataset.value || 'react'] || '')}>
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy Code
+                            </Button>
+                        </div>
+                    </CardContent>
+                  </Tabs>
+                </Card>
+            )
+          })}
         </div>
         {galleryItems.length === 0 && (
             <div className="text-center text-muted-foreground py-16">
@@ -148,3 +252,4 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
   );
 }
 
+    
