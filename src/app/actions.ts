@@ -2,6 +2,7 @@
 
 import { generateUiComponent, GenerateUiComponentInput } from '@/ai/flows/generate-ui-component';
 import { optimizeComponentLayout } from '@/ai/flows/optimize-component-layout';
+import { cloneUrl, CloneUrlInput } from '@/ai/flows/clone-url-flow';
 import { galleryItems, type GalleryItem } from '@/lib/gallery-items';
 
 export async function handleGenerateComponent(
@@ -21,6 +22,18 @@ export async function handleGenerateComponent(
     console.error('Error in AI generation flows:', error);
     throw new Error('Failed to generate component and suggestions.');
   }
+}
+
+export async function handleCloneUrl(
+    input: CloneUrlInput
+) {
+    try {
+        const result = await cloneUrl(input);
+        return result;
+    } catch (error) {
+        console.error('Error in clone URL flow:', error);
+        throw new Error('Failed to clone URL.');
+    }
 }
 
 export async function handlePublishComponent(item: Omit<GalleryItem, 'image' | 'data-ai-hint'>) {

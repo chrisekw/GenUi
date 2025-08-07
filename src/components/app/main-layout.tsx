@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { getGalleryItems, handleGenerateComponent } from '@/app/actions';
+import { getGalleryItems, handleGenerateComponent, handleCloneUrl } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { type GalleryItem } from '@/lib/gallery-items';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,9 +12,9 @@ import {
   Camera,
   ChevronRight,
   CodeXml,
-  Figma,
   Layout,
   Upload,
+  Link as LinkIcon,
   Menu,
   Eye,
   X,
@@ -34,6 +34,9 @@ import {
 import { ComponentPreview } from './component-preview';
 import Link from 'next/link';
 import { Header } from './header';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 
 export type Framework = 'react' | 'vue' | 'html';
 
@@ -41,13 +44,14 @@ const suggestionButtons = [
   { icon: Layout, text: 'Landing Page', prompt: 'A professional landing page for a SaaS product. It should include a navigation bar, a hero section with a call-to-action, a features section with three columns, a pricing table with three tiers, a customer testimonials section, and a footer.' },
   { icon: CodeXml, text: 'Sign Up Form', prompt: 'A sign up form with email and password fields, and a submit button.' },
   { icon: Camera, text: 'Image-based', prompt: 'A card component based on an image of a product.' },
-  { icon: Figma, text: 'Figma-inspired', prompt: 'A dashboard sidebar navigation inspired by Figma\'s UI.' },
+  { icon: LinkIcon, text: 'Clone URL', prompt: '' },
 ];
 
 interface PromptViewProps {
   prompt: string;
   setPrompt: (prompt: string) => void;
   onGenerate: (prompt: string, framework: Framework, imageUrl?: string) => void;
+  onClone: (url: string, framework: Framework) => void;
   isLoading: boolean;
   framework: Framework;
   galleryItems: GalleryItem[];
@@ -55,12 +59,19 @@ interface PromptViewProps {
   setImageUrl: (url: string | null) => void;
 }
 
-function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galleryItems, imageUrl, setImageUrl }: PromptViewProps) {
+function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framework, galleryItems, imageUrl, setImageUrl }: PromptViewProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [showCloneDialog, setShowCloneDialog] = React.useState(false);
+  const [cloneUrl, setCloneUrlValue] = React.useState('');
+
 
   const handleSuggestionClick = (item: { text: string, prompt: string}) => {
-    const newPrompt = item.prompt;
-    setPrompt(newPrompt);
+    if (item.text === 'Clone URL') {
+        setShowCloneDialog(true);
+    } else {
+        const newPrompt = item.prompt;
+        setPrompt(newPrompt);
+    }
   }
 
   const handleGalleryItemClick = (item: GalleryItem) => {
@@ -89,6 +100,11 @@ function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galle
     if(fileInputRef.current) {
         fileInputRef.current.value = '';
     }
+  }
+  
+  const handleClone = () => {
+    onClone(cloneUrl, framework);
+    setShowCloneDialog(false);
   }
 
   const getIframeSrcDoc = (code: string) => {
@@ -169,95 +185,127 @@ function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galle
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full p-4 md:p-6">
-      <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
-        <h1 className="text-4xl md:text-5xl font-medium text-center tracking-tight">
-          What can I help you build?
-        </h1>
-        {imageUrl && (
-            <div className="relative w-full max-w-sm mx-auto">
-                <Image src={imageUrl} alt="Uploaded component" width={400} height={300} className="rounded-lg object-contain" />
-                <Button variant="destructive" size="icon" className="absolute top-2 right-2" onClick={handleRemoveImage}>
-                    <X className="h-4 w-4" />
+    <>
+        <div className="flex flex-col items-center justify-center h-full p-4 md:p-6">
+        <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
+            <h1 className="text-4xl md:text-5xl font-medium text-center tracking-tight">
+            What can I help you build?
+            </h1>
+            {imageUrl && (
+                <div className="relative w-full max-w-sm mx-auto">
+                    <Image src={imageUrl} alt="Uploaded component" width={400} height={300} className="rounded-lg object-contain" />
+                    <Button variant="destructive" size="icon" className="absolute top-2 right-2" onClick={handleRemoveImage}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
+            <div className="relative">
+            <Textarea
+                placeholder="A pricing card with three tiers and a call to action button."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="bg-background border rounded-lg p-4 pr-24 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
+            />
+            <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept="image/*"
+                />
+                <Button variant="ghost" size="icon" onClick={handleUploadClick}>
+                <Upload />
+                </Button>
+                <Button size="icon" onClick={() => onGenerate(prompt, framework, imageUrl || undefined)} disabled={isLoading}>
+                <ArrowUp />
                 </Button>
             </div>
-        )}
-        <div className="relative">
-          <Textarea
-            placeholder="A pricing card with three tiers and a call to action button."
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="bg-background border rounded-lg p-4 pr-24 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
-          />
-          <div className="absolute bottom-3 right-3 flex items-center gap-2">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-              accept="image/*"
-            />
-            <Button variant="ghost" size="icon" onClick={handleUploadClick}>
-              <Upload />
-            </Button>
-            <Button size="icon" onClick={() => onGenerate(prompt, framework, imageUrl || undefined)} disabled={isLoading}>
-              <ArrowUp />
-            </Button>
-          </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center gap-2">
+            {suggestionButtons.map((item, index) => (
+                <Button key={index} variant="outline" className="rounded-lg" onClick={() => handleSuggestionClick(item)}>
+                <item.icon className="mr-2" />
+                {item.text}
+                </Button>
+            ))}
+            </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center gap-2">
-          {suggestionButtons.map((item, index) => (
-            <Button key={index} variant="outline" className="rounded-lg" onClick={() => handleSuggestionClick(item)}>
-              <item.icon className="mr-2" />
-              {item.text}
+        <div className="w-full max-w-7xl mx-auto mt-16">
+            <div className="flex items-center justify-between mb-4">
+            <div>
+                <h2 className="text-2xl font-medium tracking-tight">From the Community</h2>
+                <p className="text-muted-foreground">Explore what the community is building.</p>
+            </div>
+            <Button variant="ghost" asChild>
+                <Link href="/community">
+                    Browse All <ChevronRight className="ml-1" />
+                </Link>
             </Button>
-          ))}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {galleryItems.map((item) => (
+                <Card
+                key={item.name}
+                className="cursor-pointer hover:border-primary/50 transition-colors overflow-hidden group"
+                onClick={() => handleGalleryItemClick(item)}
+                >
+                <CardContent className="p-0">
+                    <div className="aspect-video overflow-hidden bg-muted relative">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button variant="secondary">
+                            <Eye className="h-4 w-4 mr-2" />
+                            Use Component
+                        </Button>
+                    </div>
+                    <iframe
+                        srcDoc={getIframeSrcDoc(item.code)}
+                        title={item.name}
+                        sandbox="allow-scripts allow-same-origin"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        scrolling="no"
+                    />
+                    </div>
+                    <div className="p-4">
+                    <p className="font-medium">{item.name}</p>
+                    </div>
+                </CardContent>
+                </Card>
+            ))}
+            </div>
         </div>
-      </div>
-      <div className="w-full max-w-7xl mx-auto mt-16">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-2xl font-medium tracking-tight">From the Community</h2>
-            <p className="text-muted-foreground">Explore what the community is building.</p>
-          </div>
-          <Button variant="ghost" asChild>
-            <Link href="/community">
-                Browse All <ChevronRight className="ml-1" />
-            </Link>
-          </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {galleryItems.map((item) => (
-            <Card
-              key={item.name}
-              className="cursor-pointer hover:border-primary/50 transition-colors overflow-hidden group"
-              onClick={() => handleGalleryItemClick(item)}
-            >
-              <CardContent className="p-0">
-                <div className="aspect-video overflow-hidden bg-muted relative">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button variant="secondary">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Use Component
-                      </Button>
-                  </div>
-                  <iframe
-                      srcDoc={getIframeSrcDoc(item.code)}
-                      title={item.name}
-                      sandbox="allow-scripts allow-same-origin"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      scrolling="no"
-                  />
+        <Dialog open={showCloneDialog} onOpenChange={setShowCloneDialog}>
+            <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Clone from URL</DialogTitle>
+                <DialogDescription>
+                    Enter a URL to clone a component from an existing website.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                    URL
+                </Label>
+                <Input
+                    id="url"
+                    value={cloneUrl}
+                    onChange={(e) => setCloneUrlValue(e.target.value)}
+                    className="col-span-3"
+                    placeholder="https://example.com"
+                />
                 </div>
-                <div className="p-4">
-                  <p className="font-medium">{item.name}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </div>
+            </div>
+            <DialogFooter>
+                <Button variant="ghost" onClick={() => setShowCloneDialog(false)}>Cancel</Button>
+                <Button onClick={handleClone} disabled={isLoading}>
+                {isLoading ? 'Cloning...' : 'Clone'}
+                </Button>
+            </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    </>
   );
 }
 
@@ -283,10 +331,10 @@ export function MainLayout() {
   }, [activeView]);
 
   const onGenerate = async (currentPrompt: string, currentFramework: Framework, currentImageUrl?: string) => {
-    if (!currentPrompt) {
+    if (!currentPrompt && !currentImageUrl) {
       toast({
-        title: 'Prompt is empty',
-        description: 'Please enter a prompt to generate a component.',
+        title: 'Prompt or image is required',
+        description: 'Please enter a prompt or upload an image to generate a component.',
         variant: 'destructive',
       });
       return;
@@ -320,6 +368,42 @@ export function MainLayout() {
       setIsLoading(false);
     }
   };
+
+  const onClone = async (url: string, currentFramework: Framework) => {
+    if (!url) {
+      toast({
+        title: 'URL is empty',
+        description: 'Please enter a URL to clone a component.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setIsLoading(true);
+    setGeneratedCode('');
+    setLayoutSuggestions('');
+    if (activeView !== 'preview') {
+      setActiveView('preview');
+    }
+
+    try {
+      const result = await handleCloneUrl({ url, framework: currentFramework });
+      setGeneratedCode(result.code);
+      setLayoutSuggestions(''); // No suggestions for cloned components for now
+      setFramework(currentFramework);
+      setPrompt(`A component cloned from ${url}`);
+      setImageUrl(null);
+    } catch (error) {
+        console.error(error);
+        toast({
+            title: 'Error cloning URL',
+            description: 'There was an error cloning the URL. Please try again.',
+            variant: 'destructive',
+        });
+        setGeneratedCode('');
+    } finally {
+        setIsLoading(false);
+    }
+  };
   
   const handleFrameworkChange = (newFramework: Framework) => {
     setFramework(newFramework);
@@ -340,6 +424,7 @@ export function MainLayout() {
             prompt={prompt}
             setPrompt={setPrompt}
             onGenerate={onGenerate}
+            onClone={onClone}
             isLoading={isLoading}
             framework={framework}
             galleryItems={galleryItems}
