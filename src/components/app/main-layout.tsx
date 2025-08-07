@@ -28,9 +28,10 @@ import { useToast } from '@/hooks/use-toast';
 import { galleryItems, type GalleryItem } from '@/lib/gallery-items';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Code, GalleryHorizontal, Wand2 } from 'lucide-react';
+import { GalleryHorizontal, Wand2 } from 'lucide-react';
 import { Logo } from '../icons/logo';
 import { ThemeToggle } from './theme-toggle';
+import Image from 'next/image';
 
 type Framework = 'react' | 'vue' | 'html';
 
@@ -162,14 +163,23 @@ export function MainLayout() {
                     {filteredGalleryItems.map(item => (
                       <Card
                         key={item.name}
-                        className="cursor-pointer hover:border-primary transition-colors"
+                        className="cursor-pointer hover:border-primary transition-colors overflow-hidden"
                         onClick={() => handleGalleryItemClick(item)}
                       >
+                        <div className="aspect-video overflow-hidden">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            width={600}
+                            height={400}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
                         <CardHeader>
                           <CardTitle className="text-base">{item.name}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
                         </CardContent>
                       </Card>
                     ))}
