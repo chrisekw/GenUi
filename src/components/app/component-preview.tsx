@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -118,23 +119,23 @@ export function ComponentPreview({
 
     return (
         <Tabs defaultValue="preview" className="w-full h-full flex flex-col">
-            <div className="flex items-center justify-between gap-4 px-4 pt-4 border-b">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 pt-4 border-b">
+              <div className="flex items-center gap-4 w-full sm:w-auto">
                 <Button variant="ghost" size="icon" onClick={onBack}>
                   <ArrowLeft />
                 </Button>
                 <TabsList>
-                    <TabsTrigger value="preview"><Eye className="mr-2 h-4 w-4" />Preview</TabsTrigger>
-                    <TabsTrigger value="code"><CodeIcon className="mr-2 h-4 w-4" />Code</TabsTrigger>
-                    <TabsTrigger value="suggestions"><Lightbulb className="mr-2 h-4 w-4" />Suggestions</TabsTrigger>
+                    <TabsTrigger value="preview"><Eye className="h-4 w-4 md:mr-2" /><span className="hidden md:inline">Preview</span></TabsTrigger>
+                    <TabsTrigger value="code"><CodeIcon className="h-4 w-4 md:mr-2" /><span className="hidden md:inline">Code</span></TabsTrigger>
+                    <TabsTrigger value="suggestions"><Lightbulb className="h-4 w-4 md:mr-2" /><span className="hidden md:inline">Suggestions</span></TabsTrigger>
                 </TabsList>
               </div>
-              <div>
+              <div className="w-full sm:w-auto">
                 <Tabs value={framework} onValueChange={(value) => onFrameworkChange(value as Framework)}>
-                  <TabsList>
-                    <TabsTrigger value="react">React</TabsTrigger>
-                    <TabsTrigger value="vue">Vue</TabsTrigger>
-                    <TabsTrigger value="html">HTML</TabsTrigger>
+                  <TabsList className="w-full">
+                    <TabsTrigger value="react" className="flex-1">React</TabsTrigger>
+                    <TabsTrigger value="vue" className="flex-1">Vue</TabsTrigger>
+                    <TabsTrigger value="html" className="flex-1">HTML</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
