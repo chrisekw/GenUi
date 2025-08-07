@@ -9,10 +9,9 @@ export async function handleGenerateComponent(
   input: GenerateUiComponentInput
 ) {
   try {
-    const [componentResult, layoutResult] = await Promise.all([
-      generateUiComponent(input),
-      optimizeComponentLayout({ componentPrompt: input.prompt, framework: input.framework }),
-    ]);
+    // Run sequentially to avoid potential race conditions or API limits
+    const componentResult = await generateUiComponent(input);
+    const layoutResult = await optimizeComponentLayout({ componentPrompt: input.prompt, framework: input.framework });
 
     return {
       code: componentResult.code,
