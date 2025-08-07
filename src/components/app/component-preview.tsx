@@ -8,13 +8,15 @@ import { Lightbulb, Code as CodeIcon, Eye, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Wand2 } from 'lucide-react';
+import type { Framework } from './main-layout';
 
 interface ComponentPreviewProps {
   code: string;
   suggestions: string;
   isLoading: boolean;
-  framework: 'react' | 'vue' | 'html';
+  framework: Framework;
   onBack: () => void;
+  onFrameworkChange: (framework: Framework) => void;
 }
 
 export function ComponentPreview({
@@ -23,6 +25,7 @@ export function ComponentPreview({
   isLoading,
   framework,
   onBack,
+  onFrameworkChange,
 }: ComponentPreviewProps) {
   const iframeSrcDoc = `
     <!DOCTYPE html>
@@ -88,7 +91,7 @@ export function ComponentPreview({
   `;
 
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading && !code) {
       return (
          <div className="flex items-center justify-center h-full">
             <div className="flex flex-col items-center gap-4">
@@ -99,7 +102,7 @@ export function ComponentPreview({
       );
     }
   
-    if (!code) {
+    if (!code && !isLoading) {
       return (
         <div className="flex h-full items-center justify-center">
           <div className="text-center text-muted-foreground p-6">
@@ -115,17 +118,36 @@ export function ComponentPreview({
 
     return (
         <Tabs defaultValue="preview" className="w-full h-full flex flex-col">
-            <div className="flex items-center gap-4 px-4 pt-4 border-b">
-              <Button variant="ghost" size="icon" onClick={onBack}>
-                <ArrowLeft />
-              </Button>
-              <TabsList>
-                  <TabsTrigger value="preview"><Eye className="mr-2 h-4 w-4" />Preview</TabsTrigger>
-                  <TabsTrigger value="code"><CodeIcon className="mr-2 h-4 w-4" />Code</TabsTrigger>
-                  <TabsTrigger value="suggestions"><Lightbulb className="mr-2 h-4 w-4" />Suggestions</TabsTrigger>
-              </TabsList>
+            <div className="flex items-center justify-between gap-4 px-4 pt-4 border-b">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={onBack}>
+                  <ArrowLeft />
+                </Button>
+                <TabsList>
+                    <TabsTrigger value="preview"><Eye className="mr-2 h-4 w-4" />Preview</TabsTrigger>
+                    <TabsTrigger value="code"><CodeIcon className="mr-2 h-4 w-4" />Code</TabsTrigger>
+                    <TabsTrigger value="suggestions"><Lightbulb className="mr-2 h-4 w-4" />Suggestions</TabsTrigger>
+                </TabsList>
+              </div>
+              <div>
+                <Tabs value={framework} onValueChange={(value) => onFrameworkChange(value as Framework)}>
+                  <TabsList>
+                    <TabsTrigger value="react">React</TabsTrigger>
+                    <TabsTrigger value="vue">Vue</TabsTrigger>
+                    <TabsTrigger value="html">HTML</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
             </div>
             <TabsContent value="preview" className="flex-1 bg-muted/20">
+              {isLoading && (
+                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10">
+                      <div className="flex flex-col items-center gap-4">
+                          <Wand2 className="h-12 w-12 animate-pulse text-primary" />
+                          <p className="text-muted-foreground">Generating component...</p>
+                      </div>
+                  </div>
+              )}
                 <div className="relative w-full h-full rounded-md overflow-hidden">
                     <iframe
                         srcDoc={iframeSrcDoc}

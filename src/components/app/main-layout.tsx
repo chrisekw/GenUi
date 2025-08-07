@@ -31,7 +31,7 @@ import {
 import { ComponentPreview } from './component-preview';
 import { DialogTitle } from '@radix-ui/react-dialog';
 
-type Framework = 'react' | 'vue' | 'html';
+export type Framework = 'react' | 'vue' | 'html';
 
 const suggestionButtons = [
   { icon: Camera, text: 'Clone a Screenshot', prompt: 'Clone a screenshot to component' },
@@ -53,7 +53,7 @@ export function MainLayout() {
   const [galleryItems, setGalleryItems] = React.useState<GalleryItem[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const onGenerate = async (currentPrompt: string) => {
+  const onGenerate = async (currentPrompt: string, currentFramework: Framework) => {
     if (!currentPrompt) {
       toast({
         title: 'Prompt is empty',
@@ -65,11 +65,15 @@ export function MainLayout() {
     setIsLoading(true);
     setGeneratedCode('');
     setLayoutSuggestions('');
-    setActiveView('preview');
+    if (activeView !== 'preview') {
+      setActiveView('preview');
+    }
+    
     try {
-      const result = await handleGenerateComponent(currentPrompt, framework);
+      const result = await handleGenerateComponent(currentPrompt, currentFramework);
       setGeneratedCode(result.code);
       setLayoutSuggestions(result.suggestions);
+      setFramework(currentFramework);
     } catch (error) {
       console.error(error);
       toast({
@@ -78,19 +82,22 @@ export function MainLayout() {
           'There was an error generating the component. Please try again.',
         variant: 'destructive',
       });
+      setGeneratedCode('');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSuggestionClick = (item: { text: string, prompt: string}) => {
-    setPrompt(item.prompt);
-    onGenerate(item.prompt);
+    const newPrompt = item.prompt;
+    setPrompt(newPrompt);
+    onGenerate(newPrompt, framework);
   }
 
   const handleGalleryItemClick = (item: GalleryItem) => {
-    setPrompt(item.prompt);
-    onGenerate(item.prompt);
+    const newPrompt = item.prompt;
+    setPrompt(newPrompt);
+    onGenerate(newPrompt, framework);
   };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,6 +116,13 @@ export function MainLayout() {
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
+  
+  const handleFrameworkChange = (newFramework: Framework) => {
+    setFramework(newFramework);
+    if(prompt) {
+      onGenerate(prompt, newFramework);
+    }
+  }
 
   const Header = () => (
     <header className="flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
@@ -174,7 +188,7 @@ export function MainLayout() {
             <Button variant="ghost" size="icon" onClick={handleUploadClick}>
               <Paperclip />
             </Button>
-            <Button size="icon" onClick={() => onGenerate(prompt)} disabled={isLoading}>
+            <Button size="icon" onClick={() => onGenerate(prompt, framework)} disabled={isLoading}>
               <ArrowUp />
             </Button>
           </div>
@@ -237,6 +251,7 @@ export function MainLayout() {
             isLoading={isLoading}
             framework={framework}
             onBack={() => setActiveView('prompt')}
+            onFrameworkChange={handleFrameworkChange}
           />
         )}
       </main>
