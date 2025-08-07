@@ -11,10 +11,10 @@ import {
   Camera,
   ChevronRight,
   CodeXml,
+  Figma,
   Layout,
   Link as LinkIcon,
   Menu,
-  Sparkles,
 } from 'lucide-react';
 import { Logo } from '../icons/logo';
 import Image from 'next/image';
@@ -25,6 +25,7 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { ComponentPreview } from './component-preview';
@@ -33,7 +34,7 @@ type Framework = 'react' | 'vue' | 'html';
 
 const suggestionButtons = [
   { icon: Camera, text: 'Clone a Screenshot', prompt: 'Clone a screenshot to component' },
-  { icon: Sparkles, text: 'Import from Figma', prompt: 'Import a component from Figma' },
+  { icon: Figma, text: 'Import from Figma', prompt: 'Import a component from Figma' },
   { icon: Layout, text: 'Landing Page', prompt: 'A modern landing page with a hero section and features list.' },
   { icon: CodeXml, text: 'Sign Up Form', prompt: 'A sign up form with email and password fields, and a submit button.' },
 ];
@@ -101,9 +102,9 @@ export function MainLayout() {
             </SheetTrigger>
             <SheetContent side="left" className="w-full max-w-xs">
               <SheetHeader>
+                <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
                 <div className="flex items-center gap-2 py-4">
                   <Logo />
-                  <span className="font-semibold text-foreground">v0</span>
                 </div>
               </SheetHeader>
               <nav className="flex flex-col gap-2">
@@ -132,7 +133,7 @@ export function MainLayout() {
 
   const PromptView = () => (
     <div className="flex flex-col items-center justify-center h-full p-4 md:p-6">
-      <div className="w-full max-w-4xl mx-auto flex flex-col gap-8">
+      <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
         <h1 className="text-4xl md:text-5xl font-medium text-center tracking-tight">
           What can I help you build?
         </h1>
@@ -141,7 +142,7 @@ export function MainLayout() {
             placeholder="A pricing card with three tiers..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="bg-secondary border-0 rounded-xl p-4 pr-24 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
+            className="bg-secondary/50 border-0 rounded-xl p-4 pr-24 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
           />
           <div className="absolute bottom-3 right-3 flex items-center gap-2">
             <Button variant="ghost" size="icon">
@@ -173,7 +174,7 @@ export function MainLayout() {
           {galleryItems.map((item) => (
             <Card
               key={item.name}
-              className="cursor-pointer hover:border-primary transition-colors overflow-hidden group"
+              className="cursor-pointer hover:border-primary/50 transition-colors overflow-hidden group"
               onClick={() => handleGalleryItemClick(item)}
             >
               <CardContent className="p-0">
