@@ -4,8 +4,9 @@ import * as React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CodeDisplay } from './code-display';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Lightbulb, Code as CodeIcon, Eye } from 'lucide-react';
+import { Lightbulb, Code as CodeIcon, Eye, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Button } from '../ui/button';
 import { Wand2 } from 'lucide-react';
 
 interface ComponentPreviewProps {
@@ -13,6 +14,7 @@ interface ComponentPreviewProps {
   suggestions: string;
   isLoading: boolean;
   framework: 'react' | 'vue' | 'html';
+  onBack: () => void;
 }
 
 export function ComponentPreview({
@@ -20,6 +22,7 @@ export function ComponentPreview({
   suggestions,
   isLoading,
   framework,
+  onBack,
 }: ComponentPreviewProps) {
   const iframeSrcDoc = `
     <!DOCTYPE html>
@@ -34,19 +37,19 @@ export function ComponentPreview({
                 --card-foreground: 0 0% 98%;
                 --popover: 240 6% 10%;
                 --popover-foreground: 0 0% 98%;
-                --primary: 210 40% 98%;
-                --primary-foreground: 210 40% 9.8%;
-                --secondary: 240 5% 14%;
+                --primary: 0 0% 98%;
+                --primary-foreground: 240 5.9% 10%;
+                --secondary: 240 3.7% 15.9%;
                 --secondary-foreground: 0 0% 98%;
-                --muted: 240 5% 14%;
+                --muted: 240 3.7% 15.9%;
                 --muted-foreground: 240 5% 64.9%;
-                --accent: 240 5% 14%;
+                --accent: 240 3.7% 15.9%;
                 --accent-foreground: 0 0% 98%;
                 --destructive: 0 62.8% 30.6%;
                 --destructive-foreground: 0 0% 98%;
-                --border: 240 5% 14%;
-                --input: 240 5% 14%;
-                --ring: 210 40% 98%;
+                --border: 240 3.7% 15.9%;
+                --input: 240 3.7% 15.9%;
+                --ring: 240 4.9% 83.9%;
             }
             html.dark {
                 --background: 240 6% 10%;
@@ -55,19 +58,19 @@ export function ComponentPreview({
                 --card-foreground: 0 0% 98%;
                 --popover: 240 6% 10%;
                 --popover-foreground: 0 0% 98%;
-                --primary: 210 40% 98%;
-                --primary-foreground: 210 40% 9.8%;
-                --secondary: 240 5% 14%;
+                --primary: 0 0% 98%;
+                --primary-foreground: 240 5.9% 10%;
+                --secondary: 240 3.7% 15.9%;
                 --secondary-foreground: 0 0% 98%;
-                --muted: 240 5% 14%;
+                --muted: 240 3.7% 15.9%;
                 --muted-foreground: 240 5% 64.9%;
-                --accent: 240 5% 14%;
+                --accent: 240 3.7% 15.9%;
                 --accent-foreground: 0 0% 98%;
                 --destructive: 0 62.8% 30.6%;
                 --destructive-foreground: 0 0% 98%;
-                --border: 240 5% 14%;
-                --input: 240 5% 14%;
-                --ring: 210 40% 98%;
+                --border: 240 3.7% 15.9%;
+                --input: 240 3.7% 15.9%;
+                --ring: 240 4.9% 83.9%;
             }
             body { 
               background-color: hsl(var(--background));
@@ -89,11 +92,8 @@ export function ComponentPreview({
       return (
          <div className="flex items-center justify-center h-full">
             <div className="flex flex-col items-center gap-4">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-[250px]" />
-                    <Skeleton className="h-4 w-[200px]" />
-                </div>
+                <Wand2 className="h-12 w-12 animate-pulse text-primary" />
+                <p className="text-muted-foreground">Generating component...</p>
             </div>
          </div>
       );
@@ -103,10 +103,11 @@ export function ComponentPreview({
       return (
         <div className="flex h-full items-center justify-center">
           <div className="text-center text-muted-foreground p-6">
-            <Wand2 className="mx-auto h-12 w-12" />
+             <Wand2 className="mx-auto h-12 w-12" />
             <p className="mt-4">
-              Your generated component will appear here.
+              Something went wrong. Please try again.
             </p>
+             <Button onClick={onBack} variant="outline" className="mt-4">Go Back</Button>
           </div>
         </div>
       );
@@ -114,14 +115,17 @@ export function ComponentPreview({
 
     return (
         <Tabs defaultValue="preview" className="w-full h-full flex flex-col">
-            <div className="px-4 pt-4">
-                <TabsList>
-                    <TabsTrigger value="preview"><Eye className="mr-2 h-4 w-4" />Preview</TabsTrigger>
-                    <TabsTrigger value="code"><CodeIcon className="mr-2 h-4 w-4" />Code</TabsTrigger>
-                    <TabsTrigger value="suggestions"><Lightbulb className="mr-2 h-4 w-4" />Suggestions</TabsTrigger>
-                </TabsList>
+            <div className="flex items-center gap-4 px-4 pt-4 border-b">
+              <Button variant="ghost" size="icon" onClick={onBack}>
+                <ArrowLeft />
+              </Button>
+              <TabsList>
+                  <TabsTrigger value="preview"><Eye className="mr-2 h-4 w-4" />Preview</TabsTrigger>
+                  <TabsTrigger value="code"><CodeIcon className="mr-2 h-4 w-4" />Code</TabsTrigger>
+                  <TabsTrigger value="suggestions"><Lightbulb className="mr-2 h-4 w-4" />Suggestions</TabsTrigger>
+              </TabsList>
             </div>
-            <TabsContent value="preview" className="mt-4 flex-1 bg-muted/20">
+            <TabsContent value="preview" className="flex-1 bg-muted/20">
                 <div className="relative w-full h-full rounded-md overflow-hidden">
                     <iframe
                         srcDoc={iframeSrcDoc}
@@ -131,10 +135,10 @@ export function ComponentPreview({
                         />
                 </div>
             </TabsContent>
-            <TabsContent value="code" className="mt-4 flex-1 overflow-y-auto p-4">
+            <TabsContent value="code" className="flex-1 overflow-y-auto p-4">
                 <CodeDisplay code={code} framework={framework} />
             </TabsContent>
-            <TabsContent value="suggestions" className="mt-4 p-4">
+            <TabsContent value="suggestions" className="p-4">
                 <Alert>
                 <Lightbulb className="h-4 w-4" />
                 <AlertTitle>Layout Suggestions</AlertTitle>
