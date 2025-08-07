@@ -5,7 +5,7 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { handleGenerateComponent } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import { galleryItems, type GalleryItem } from '@/lib/gallery-items';
+import { type GalleryItem } from '@/lib/gallery-items';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   ArrowUp,
@@ -26,10 +26,10 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { ComponentPreview } from './component-preview';
+import { DialogTitle } from '@radix-ui/react-dialog';
 
 type Framework = 'react' | 'vue' | 'html';
 
@@ -50,6 +50,7 @@ export function MainLayout() {
   const [activeView, setActiveView] = React.useState('prompt'); // 'prompt' or 'preview'
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const [galleryItems, setGalleryItems] = React.useState<GalleryItem[]>([]);
 
   const onGenerate = async (currentPrompt: string) => {
     if (!currentPrompt) {
@@ -103,12 +104,12 @@ export function MainLayout() {
           </SheetTrigger>
           <SheetContent side="left" className="w-full max-w-xs">
             <SheetHeader>
-              <SheetTitle>
+              <DialogTitle>
                 <div className="flex items-center gap-2 py-4">
                   <Logo />
                   <span className="text-xl font-semibold">GenUI</span>
                 </div>
-              </SheetTitle>
+              </DialogTitle>
             </SheetHeader>
             <nav className="flex flex-col gap-2">
               {/* Add mobile navigation items here */}
@@ -124,7 +125,6 @@ export function MainLayout() {
     </div>
 
     <div className="flex items-center gap-4">
-      <Button variant="default">Publish</Button>
       <Avatar className="h-8 w-8">
         <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
         <AvatarFallback>CN</AvatarFallback>
