@@ -31,6 +31,8 @@ import {
   SheetTitle
 } from '@/components/ui/sheet';
 import { ComponentPreview } from './component-preview';
+import Link from 'next/link';
+import { Header } from './header';
 
 export type Framework = 'react' | 'vue' | 'html';
 
@@ -197,7 +199,11 @@ function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galle
             <h2 className="text-2xl font-medium tracking-tight">From the Community</h2>
             <p className="text-muted-foreground">Explore what the community is building.</p>
           </div>
-          <Button variant="ghost">Browse All <ChevronRight className="ml-1" /></Button>
+          <Button variant="ghost" asChild>
+            <Link href="/community">
+                Browse All <ChevronRight className="ml-1" />
+            </Link>
+          </Button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {galleryItems.map((item) => (
@@ -240,16 +246,14 @@ export function MainLayout() {
   const [generatedCode, setGeneratedCode] = React.useState('');
   const [layoutSuggestions, setLayoutSuggestions] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
-  const [isSidebarOpen, setSidebarOpen] = React.useState(false);
   const [activeView, setActiveView] = React.useState('prompt'); // 'prompt' or 'preview'
-  const isMobile = useIsMobile();
   const { toast } = useToast();
   const [galleryItems, setGalleryItems] = React.useState<GalleryItem[]>([]);
   
   React.useEffect(() => {
     const fetchGalleryItems = async () => {
         const items = await getGalleryItems();
-        setGalleryItems(items);
+        setGalleryItems(items.slice(0, 3)); // Show only 3 items on the main page
     };
     if (activeView === 'prompt') {
       fetchGalleryItems();
@@ -302,47 +306,6 @@ export function MainLayout() {
   const handleBackToPrompt = () => {
     setActiveView('prompt');
   }
-
-  const Header = () => (
-    <header className="flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
-    <div className="flex items-center gap-4">
-      {isMobile ? (
-        <Sheet open={isSidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-full max-w-xs">
-            <SheetHeader>
-              <SheetTitle>
-                <div className="flex items-center gap-2 py-4">
-                  <Logo />
-                  <span className="text-xl font-semibold">GenUI</span>
-                </div>
-              </SheetTitle>
-            </SheetHeader>
-            <nav className="flex flex-col gap-2">
-              {/* Add mobile navigation items here */}
-            </nav>
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <div className="flex items-center gap-2">
-          <Logo />
-           <h1 className="text-xl font-semibold">GenUi</h1>
-        </div>
-      )}
-    </div>
-
-    <div className="flex items-center gap-4">
-      <Avatar className="h-8 w-8">
-        <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-        <AvatarFallback>CN</AvatarFallback>
-      </Avatar>
-    </div>
-  </header>
-  );
 
   return (
     <div className="flex flex-col h-screen bg-background">
