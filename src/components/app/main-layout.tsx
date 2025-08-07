@@ -105,6 +105,7 @@ export function MainLayout() {
                 <SheetTitle>
                   <div className="flex items-center gap-2 py-4">
                     <Logo />
+                    <span>GenUI</span>
                   </div>
                 </SheetTitle>
               </SheetHeader>
@@ -118,12 +119,13 @@ export function MainLayout() {
             <Button variant="ghost" size="icon">
               <Menu />
             </Button>
-            <Logo />
           </div>
         )}
+        <h1 className="text-lg font-semibold">GenUI: AI Component Generator</h1>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
+        <Button variant="default">Publish</Button>
         <Avatar className="h-8 w-8">
           <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
           <AvatarFallback>CN</AvatarFallback>
@@ -143,7 +145,7 @@ export function MainLayout() {
             placeholder="A pricing card with three tiers..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="bg-secondary/50 border-0 rounded-xl p-4 pr-24 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
+            className="bg-background border rounded-lg p-4 pr-24 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
           />
           <div className="absolute bottom-3 right-3 flex items-center gap-2">
             <Button variant="ghost" size="icon">
@@ -154,9 +156,9 @@ export function MainLayout() {
             </Button>
           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center gap-2">
           {suggestionButtons.map((item, index) => (
-            <Button key={index} variant="outline" className="rounded-full" onClick={() => handleSuggestionClick(item)}>
+            <Button key={index} variant="outline" className="rounded-lg" onClick={() => handleSuggestionClick(item)}>
               <item.icon className="mr-2" />
               {item.text}
             </Button>
@@ -167,7 +169,7 @@ export function MainLayout() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-medium tracking-tight">From the Community</h2>
-            <p className="text-muted-foreground">Explore what the community is building with v0.</p>
+            <p className="text-muted-foreground">Explore what the community is building.</p>
           </div>
           <Button variant="ghost">Browse All <ChevronRight className="ml-1" /></Button>
         </div>
