@@ -2,17 +2,6 @@
 
 import * as React from 'react';
 import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarInset,
-  SidebarTrigger,
-  SidebarGroup,
-  SidebarGroupLabel,
-} from '@/components/ui/sidebar';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -30,8 +19,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { GalleryHorizontal, Wand2 } from 'lucide-react';
 import { Logo } from '../icons/logo';
-import { ThemeToggle } from './theme-toggle';
 import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Separator } from '../ui/separator';
 
 type Framework = 'react' | 'vue' | 'html';
 
@@ -85,85 +75,78 @@ export function MainLayout() {
   };
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center gap-2">
-            <Logo className="w-8 h-8 text-primary" />
-            <span className="text-xl font-semibold">GenUI</span>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Controls</SidebarGroupLabel>
-            <div className="flex flex-col gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Framework</label>
-                <Select
-                  value={framework}
-                  onValueChange={value => setFramework(value as Framework)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select framework" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="react">React</SelectItem>
-                    <SelectItem value="vue">Vue</SelectItem>
-                    <SelectItem value="html">HTML</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter>
-          <ThemeToggle />
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset className="flex flex-col">
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
-          <SidebarTrigger className="md:hidden" />
-          <h1 className="text-lg font-semibold sm:text-xl">
-            AI Component Generator
-          </h1>
-        </header>
-
-        <main className="flex-1 p-4 sm:p-6 md:grid md:grid-cols-2 md:gap-6">
-          <div className="flex flex-col gap-4">
+    <div className="flex flex-col h-screen bg-background">
+      <header className="flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
+        <div className="flex items-center gap-2">
+          <Logo className="w-6 h-6 text-foreground" />
+          <span className="font-semibold">GenUI</span>
+        </div>
+        <div className="flex-1" />
+        <div className="flex items-center gap-2">
+          <Select
+            value={framework}
+            onValueChange={value => setFramework(value as Framework)}
+          >
+            <SelectTrigger className="w-[120px] h-8 text-xs">
+              <SelectValue placeholder="Select framework" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="react">React</SelectItem>
+              <SelectItem value="vue">Vue</SelectItem>
+              <SelectItem value="html">HTML</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Wand2 className="h-4 w-4" />
+          </Button>
+          <Avatar className="h-8 w-8">
+            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+        </div>
+      </header>
+      <main className="flex-1 grid grid-cols-1 md:grid-cols-[350px_1fr] overflow-hidden">
+        <aside className="flex flex-col border-r">
+          <div className="p-4">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="prompt"><Wand2 className="mr-2"/>AI Prompt</TabsTrigger>
-                <TabsTrigger value="gallery"><GalleryHorizontal className="mr-2"/>Gallery</TabsTrigger>
+                <TabsTrigger value="prompt"><Wand2 className="h-4 w-4 mr-2"/>AI Prompt</TabsTrigger>
+                <TabsTrigger value="gallery"><GalleryHorizontal className="h-4 w-4 mr-2"/>Gallery</TabsTrigger>
               </TabsList>
-              <TabsContent value="prompt" className="mt-4">
-                <div className="flex flex-col gap-4">
-                  <Textarea
-                    placeholder="e.g., A pricing card with three tiers and a primary call-to-action button."
-                    value={prompt}
-                    onChange={e => setPrompt(e.target.value)}
-                    className="min-h-[120px] text-base"
-                  />
-                  <Button
-                    onClick={() => onGenerate(prompt)}
-                    disabled={isLoading}
-                    className="w-full"
-                  >
-                    {isLoading ? 'Generating...' : 'Generate Component'}
-                  </Button>
-                </div>
-              </TabsContent>
-              <TabsContent value="gallery" className="mt-4">
-                <div className="flex flex-col gap-4">
+            </Tabs>
+          </div>
+          <Separator />
+          <div className="flex-1 overflow-y-auto">
+            {activeTab === 'prompt' && (
+              <div className="p-4 flex flex-col gap-4 h-full">
+                <Textarea
+                  placeholder="e.g., A pricing card with three tiers and a primary call-to-action button."
+                  value={prompt}
+                  onChange={e => setPrompt(e.target.value)}
+                  className="flex-1 text-base bg-secondary"
+                />
+                <Button
+                  onClick={() => onGenerate(prompt)}
+                  disabled={isLoading}
+                  className="w-full"
+                >
+                  {isLoading ? 'Generating...' : 'Generate'}
+                </Button>
+              </div>
+            )}
+             {activeTab === 'gallery' && (
+              <div className="p-4 flex flex-col gap-4">
                   <Input
                     placeholder="Search gallery..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
+                    className="bg-secondary"
                   />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
+                  <div className="grid grid-cols-1 gap-4">
                     {filteredGalleryItems.map(item => (
                       <Card
                         key={item.name}
-                        className="cursor-pointer hover:border-primary transition-colors overflow-hidden"
+                        className="cursor-pointer hover:border-primary transition-colors overflow-hidden bg-secondary"
                         onClick={() => handleGalleryItemClick(item)}
                       >
                         <div className="aspect-video overflow-hidden">
@@ -175,29 +158,25 @@ export function MainLayout() {
                             className="object-cover w-full h-full"
                           />
                         </div>
-                        <CardHeader>
-                          <CardTitle className="text-base">{item.name}</CardTitle>
+                        <CardHeader className="p-3">
+                          <CardTitle className="text-sm">{item.name}</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
-                        </CardContent>
                       </Card>
                     ))}
                   </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+             )}
           </div>
-          <div className="mt-6 md:mt-0">
-            <ComponentPreview
+        </aside>
+        <div className="flex-1 flex flex-col overflow-hidden">
+           <ComponentPreview
               code={generatedCode}
               suggestions={layoutSuggestions}
               isLoading={isLoading}
               framework={framework}
             />
-          </div>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </div>
+      </main>
+    </div>
   );
 }

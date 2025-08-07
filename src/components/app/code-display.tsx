@@ -24,13 +24,13 @@ export function CodeDisplay({ code, framework }: CodeDisplayProps) {
 
   return (
     <div className="relative group">
-      <div className="absolute top-2 right-2 flex items-center gap-2">
+      <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
          <Badge variant="secondary" className="capitalize">{framework}</Badge>
         <Button variant="ghost" size="icon" onClick={handleCopy}>
             <Copy className="h-4 w-4" />
         </Button>
       </div>
-      <pre className="bg-muted rounded-md p-4 pt-12 text-sm overflow-x-auto">
+      <pre className="bg-muted/50 rounded-md p-4 pt-12 text-sm overflow-x-auto">
         <code className="font-code">{code}</code>
       </pre>
     </div>
