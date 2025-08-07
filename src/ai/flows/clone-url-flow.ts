@@ -11,6 +11,27 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const getUrlContentTool = ai.defineTool(
+    {
+      name: 'getUrlContent',
+      description: 'Retrieves the HTML content of a given URL.',
+      inputSchema: z.object({ url: z.string().url() }),
+      outputSchema: z.string(),
+    },
+    async ({ url }) => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.text();
+      } catch (e: any) {
+        return `Failed to fetch content from ${url}: ${e.message}`;
+      }
+    }
+);
+
+
 const CloneUrlInputSchema = z.object({
   url: z.string().url().describe('The URL of the website to clone a component from.'),
   framework: z.enum(['react', 'vue', 'html']).describe('The target framework for the generated code.'),
@@ -30,9 +51,10 @@ const prompt = ai.definePrompt({
   name: 'cloneUrlPrompt',
   input: {schema: CloneUrlInputSchema},
   output: {schema: CloneUrlOutputSchema},
+  tools: [getUrlContentTool],
   prompt: `You are an expert in web development and UI component creation. Your task is to analyze the content of the provided URL and generate a UI component based on its structure and styling.
 
-You will be given a URL. You need to fetch the content of this URL, understand its DOM structure and CSS, and then generate a single component that replicates its appearance. The generated code should use Tailwind CSS for styling.
+You will be given a URL. You need to fetch the content of this URL using the getUrlContent tool, understand its DOM structure and CSS, and then generate a single component that replicates its appearance. The generated code should use Tailwind CSS for styling.
 
 The target framework is: {{{framework}}}
 URL to clone: {{{url}}}
@@ -48,9 +70,6 @@ const cloneUrlFlow = ai.defineFlow(
     outputSchema: CloneUrlOutputSchema,
   },
   async input => {
-    // In a real-world scenario, you might have a service here to fetch and parse the URL content.
-    // For this example, we are relying on the model's ability to potentially access the URL or reason based on it.
-    // A more robust implementation would involve a tool that fetches the webpage content.
     const {output} = await prompt(input);
     return output!;
   }
