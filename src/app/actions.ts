@@ -9,17 +9,24 @@ export async function handleGenerateComponent(
   input: GenerateUiComponentInput
 ) {
   try {
-    // Run sequentially to avoid potential race conditions or API limits
     const componentResult = await generateUiComponent(input);
-    const layoutResult = await optimizeComponentLayout({ componentPrompt: input.prompt, framework: input.framework });
+    let layoutSuggestions = "Could not generate suggestions.";
+
+    try {
+        const layoutResult = await optimizeComponentLayout({ componentPrompt: input.prompt, framework: input.framework });
+        layoutSuggestions = layoutResult.layoutSuggestions;
+    } catch (layoutError) {
+        console.error('Error in layout optimization flow:', layoutError);
+        // Don't rethrow, just use the default suggestions
+    }
 
     return {
       code: componentResult.code,
-      suggestions: layoutResult.layoutSuggestions,
+      suggestions: layoutSuggestions,
     };
   } catch (error) {
-    console.error('Error in AI generation flows:', error);
-    throw new Error('Failed to generate component and suggestions.');
+    console.error('Error in component generation flow:', error);
+    throw new Error('Failed to generate component.');
   }
 }
 
