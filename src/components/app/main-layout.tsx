@@ -159,7 +159,7 @@ export function MainLayout() {
         </h1>
         <div className="relative">
           <Textarea
-            placeholder="I want to type my inputs here"
+            placeholder="A pricing card with three tiers and a call to action button."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             className="bg-background border rounded-lg p-4 pr-24 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
