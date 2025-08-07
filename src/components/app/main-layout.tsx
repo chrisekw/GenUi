@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { handleGenerateComponent } from '@/app/actions';
+import { getGalleryItems, handleGenerateComponent } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { type GalleryItem } from '@/lib/gallery-items';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import {
   CodeXml,
   Figma,
   Layout,
-  Paperclip,
+  Upload,
   Menu,
 } from 'lucide-react';
 import { Logo } from '../icons/logo';
@@ -34,10 +34,10 @@ import { ComponentPreview } from './component-preview';
 export type Framework = 'react' | 'vue' | 'html';
 
 const suggestionButtons = [
-  { icon: Camera, text: 'Clone a Screenshot', prompt: 'Clone a screenshot to component' },
-  { icon: Figma, text: 'Import from Figma', prompt: 'Import a component from Figma' },
   { icon: Layout, text: 'Landing Page', prompt: 'A modern landing page with a hero section and features list.' },
   { icon: CodeXml, text: 'Sign Up Form', prompt: 'A sign up form with email and password fields, and a submit button.' },
+  { icon: Camera, text: 'Image-based', prompt: 'A card component based on an image of a product.' },
+  { icon: Figma, text: 'Figma-inspired', prompt: 'A dashboard sidebar navigation inspired by Figma\'s UI.' },
 ];
 
 interface PromptViewProps {
@@ -55,7 +55,6 @@ function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galle
   const handleSuggestionClick = (item: { text: string, prompt: string}) => {
     const newPrompt = item.prompt;
     setPrompt(newPrompt);
-    onGenerate(newPrompt, framework);
   }
 
   const handleGalleryItemClick = (item: GalleryItem) => {
@@ -98,7 +97,7 @@ function PromptView({ prompt, setPrompt, onGenerate, isLoading, framework, galle
               className="hidden"
             />
             <Button variant="ghost" size="icon" onClick={handleUploadClick}>
-              <Paperclip />
+              <Upload />
             </Button>
             <Button size="icon" onClick={() => onGenerate(prompt, framework)} disabled={isLoading}>
               <ArrowUp />
@@ -164,6 +163,16 @@ export function MainLayout() {
   const { toast } = useToast();
   const [galleryItems, setGalleryItems] = React.useState<GalleryItem[]>([]);
   
+  React.useEffect(() => {
+    const fetchGalleryItems = async () => {
+        const items = await getGalleryItems();
+        setGalleryItems(items);
+    };
+    if (activeView === 'prompt') {
+      fetchGalleryItems();
+    }
+  }, [activeView]);
+
   const onGenerate = async (currentPrompt: string, currentFramework: Framework) => {
     if (!currentPrompt) {
       toast({
@@ -185,6 +194,7 @@ export function MainLayout() {
       setGeneratedCode(result.code);
       setLayoutSuggestions(result.suggestions);
       setFramework(currentFramework);
+      setPrompt(currentPrompt);
     } catch (error) {
       console.error(error);
       toast({
@@ -201,9 +211,13 @@ export function MainLayout() {
   
   const handleFrameworkChange = (newFramework: Framework) => {
     setFramework(newFramework);
-    if(prompt) {
+    if(prompt && generatedCode) {
       onGenerate(prompt, newFramework);
     }
+  }
+
+  const handleBackToPrompt = () => {
+    setActiveView('prompt');
   }
 
   const Header = () => (
@@ -265,7 +279,8 @@ export function MainLayout() {
             suggestions={layoutSuggestions}
             isLoading={isLoading}
             framework={framework}
-            onBack={() => setActiveView('prompt')}
+            prompt={prompt}
+            onBack={handleBackToPrompt}
             onFrameworkChange={handleFrameworkChange}
           />
         )}

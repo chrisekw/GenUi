@@ -5,17 +5,23 @@ import * as React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CodeDisplay } from './code-display';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Lightbulb, Code as CodeIcon, Eye, ArrowLeft } from 'lucide-react';
+import { Lightbulb, Code as CodeIcon, Eye, ArrowLeft, Upload } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Wand2 } from 'lucide-react';
 import type { Framework } from './main-layout';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { handlePublishComponent } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 interface ComponentPreviewProps {
   code: string;
   suggestions: string;
   isLoading: boolean;
   framework: Framework;
+  prompt: string;
   onBack: () => void;
   onFrameworkChange: (framework: Framework) => void;
 }
@@ -25,9 +31,49 @@ export function ComponentPreview({
   suggestions,
   isLoading,
   framework,
+  prompt,
   onBack,
   onFrameworkChange,
 }: ComponentPreviewProps) {
+  const [isPublishing, setIsPublishing] = React.useState(false);
+  const [componentName, setComponentName] = React.useState('');
+  const [showPublishDialog, setShowPublishDialog] = React.useState(false);
+  const { toast } = useToast();
+
+  const handlePublish = async () => {
+    if (!componentName) {
+      toast({
+        title: 'Component name is required',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setIsPublishing(true);
+    try {
+      await handlePublishComponent({
+        name: componentName,
+        description: prompt, // Using prompt as description
+        prompt: prompt,
+        code: code,
+      });
+      toast({
+        title: 'Component published!',
+        description: 'Your component is now available in the community gallery.',
+      });
+      setShowPublishDialog(false);
+      onBack();
+    } catch (error) {
+      toast({
+        title: 'Error publishing component',
+        description: 'There was an error publishing the component. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+
   const getIframeSrcDoc = () => {
     const baseStyles = `
       :root {
@@ -93,15 +139,12 @@ export function ComponentPreview({
           <body class="dark">
             <div id="root" class="flex items-center justify-center w-full h-full min-h-screen p-4"></div>
             <script type="text/babel">
-              const App = () => {
-                ${code
-                  .replace(/^import\s.*?;/gm, '')
-                  .replace(/export\s+default\s+\w+;?/m, '')
-                  .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ')}
-                const Component = ${code.match(/export\s+default\s+(\w+)/)?.[1] || '() => null'};
-                return <Component />;
-              };
-              ReactDOM.render(<App />, document.getElementById('root'));
+              ${code
+                .replace(/^import\s.*?;/gm, '')
+                .replace(/export\s+default\s+\w+;?/m, '')
+                .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ')}
+              const Component = ${code.match(/export\s+default\s+(\w+)/)?.[1] || code.match(/export\s+const\s+(\w+)/)?.[1] || '() => null'};
+              ReactDOM.render(<Component />, document.getElementById('root'));
             </script>
           </body>
         </html>
@@ -166,7 +209,7 @@ export function ComponentPreview({
                     <TabsTrigger value="suggestions"><Lightbulb className="h-4 w-4 md:mr-2" /><span className="hidden md:inline">Suggestions</span></TabsTrigger>
                 </TabsList>
               </div>
-              <div className="w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Tabs value={framework} onValueChange={(value) => onFrameworkChange(value as Framework)}>
                   <TabsList className="w-full">
                     <TabsTrigger value="react" className="flex-1">React</TabsTrigger>
@@ -174,6 +217,10 @@ export function ComponentPreview({
                     <TabsTrigger value="html" className="flex-1">HTML</TabsTrigger>
                   </TabsList>
                 </Tabs>
+                <Button onClick={() => setShowPublishDialog(true)} variant="outline">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Publish
+                </Button>
               </div>
             </div>
             <TabsContent value="preview" className="flex-1 bg-muted/20">
@@ -210,5 +257,36 @@ export function ComponentPreview({
     );
   }
 
-  return <div className="h-full">{renderContent()}</div>
+  return (
+    <div className="h-full">
+      {renderContent()}
+      <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Publish to Community</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={componentName}
+                onChange={(e) => setComponentName(e.target.value)}
+                className="col-span-3"
+                placeholder="E.g. 'Cool Button'"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowPublishDialog(false)}>Cancel</Button>
+            <Button onClick={handlePublish} disabled={isPublishing}>
+              {isPublishing ? 'Publishing...' : 'Publish'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
 }
