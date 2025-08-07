@@ -102,10 +102,11 @@ export function MainLayout() {
             </SheetTrigger>
             <SheetContent side="left" className="w-full max-w-xs">
               <SheetHeader>
-                <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
-                <div className="flex items-center gap-2 py-4">
-                  <Logo />
-                </div>
+                <SheetTitle>
+                  <div className="flex items-center gap-2 py-4">
+                    <Logo />
+                  </div>
+                </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-2">
                 {/* Add mobile navigation items here */}
