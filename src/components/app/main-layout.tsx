@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -91,47 +92,45 @@ export function MainLayout() {
   };
   
   const Header = () => (
-    <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
-      <div className="flex items-center gap-4">
-        {isMobile ? (
-          <Sheet open={isSidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-full max-w-xs">
-              <SheetHeader>
-                <SheetTitle>
-                  <div className="flex items-center gap-2 py-4">
-                    <Logo />
-                    <span>GenUI</span>
-                  </div>
-                </SheetTitle>
-              </SheetHeader>
-              <nav className="flex flex-col gap-2">
-                {/* Add mobile navigation items here */}
-              </nav>
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <div className="flex items-center gap-2">
+    <header className="flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
+    <div className="flex items-center gap-4">
+      {isMobile ? (
+        <Sheet open={isSidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetTrigger asChild>
             <Button variant="ghost" size="icon">
               <Menu />
             </Button>
-          </div>
-        )}
-        <h1 className="text-lg font-semibold">GenUI: AI Component Generator</h1>
-      </div>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-full max-w-xs">
+            <SheetHeader>
+              <SheetTitle>
+                <div className="flex items-center gap-2 py-4">
+                  <Logo />
+                  <span className="text-xl font-semibold">GenUI</span>
+                </div>
+              </SheetTitle>
+            </SheetHeader>
+            <nav className="flex flex-col gap-2">
+              {/* Add mobile navigation items here */}
+            </nav>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <div className="flex items-center gap-2">
+          <Logo />
+           <h1 className="text-xl font-semibold">GenUI</h1>
+        </div>
+      )}
+    </div>
 
-      <div className="flex items-center gap-4">
-        <Button variant="default">Publish</Button>
-        <Avatar className="h-8 w-8">
-          <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
-      </div>
-    </header>
+    <div className="flex items-center gap-4">
+      <Button variant="default">Publish</Button>
+      <Avatar className="h-8 w-8">
+        <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+        <AvatarFallback>CN</AvatarFallback>
+      </Avatar>
+    </div>
+  </header>
   );
 
   const PromptView = () => (
