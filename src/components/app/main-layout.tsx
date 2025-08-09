@@ -111,32 +111,10 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
 
   const getIframeSrcDoc = (code: string) => {
     const baseStyles = `
-      :root {
-          --background: 240 6% 10%;
-          --foreground: 0 0% 98%;
-          --card: 240 6% 10%;
-          --card-foreground: 0 0% 98%;
-          --popover: 240 6% 10%;
-          --popover-foreground: 0 0% 98%;
-          --primary: 0 0% 98%;
-          --primary-foreground: 240 5.9% 10%;
-          --secondary: 240 3.7% 15.9%;
-          --secondary-foreground: 0 0% 98%;
-          --muted: 240 3.7% 15.9%;
-          --muted-foreground: 240 5% 64.9%;
-          --accent: 240 3.7% 15.9%;
-          --accent-foreground: 0 0% 98%;
-          --destructive: 0 62.8% 30.6%;
-          --destructive-foreground: 0 0% 98%;
-          --border: 240 3.7% 15.9%;
-          --input: 240 3.7% 15.9%;
-          --ring: 240 4.9% 83.9%;
-      }
       body { 
-        background-color: hsl(var(--background));
+        background-color: transparent;
         color: hsl(var(--foreground));
         font-family: Inter, sans-serif;
-        zoom: 0.5;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -150,26 +128,12 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
 
     const cleanedCode = code.replace(/^import\s.*?;/gm, '');
     const exportMatch = cleanedCode.match(/export\s+(?:default\s+)?(?:function|const)\s+([A-Z]\w*)/m);
-    const componentName = exportMatch ? exportMatch[1] : null;
-
-    if (!componentName) {
-      // Fallback for when the regex fails
-      return `
-        <!DOCTYPE html>
-        <html><body><p style="color: red;">Error: Could not find a valid component to render.</p></body></html>
-      `;
-    }
+    const componentName = exportMatch ? exportMatch[1] : 'Component';
 
     const renderScript = `
       try {
-        const App = () => {
-          const [_, forceUpdate] = React.useState(0);
-          React.useEffect(() => {
-            requestAnimationFrame(() => forceUpdate(c => c + 1));
-          }, []);
-          return <${componentName} />;
-        };
-        ReactDOM.render(<App />, document.getElementById('root'));
+        const Component = ${componentName};
+        ReactDOM.render(<Component />, document.getElementById('root'));
       } catch (e) {
         document.getElementById('root').innerHTML = '<p style="color: red;">' + e.message + '</p>';
         console.error(e);
@@ -184,7 +148,30 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
           <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
           <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
           <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-          <style>${baseStyles}</style>
+          <style>
+          :root {
+                --background: 240 6% 10%;
+                --foreground: 0 0% 98%;
+                --card: 240 6% 10%;
+                --card-foreground: 0 0% 98%;
+                --popover: 240 6% 10%;
+                --popover-foreground: 0 0% 98%;
+                --primary: 0 0% 98%;
+                --primary-foreground: 240 5.9% 10%;
+                --secondary: 240 3.7% 15.9%;
+                --secondary-foreground: 0 0% 98%;
+                --muted: 240 3.7% 15.9%;
+                --muted-foreground: 240 5% 64.9%;
+                --accent: 240 3.7% 15.9%;
+                --accent-foreground: 0 0% 98%;
+                --destructive: 0 62.8% 30.6%;
+                --destructive-foreground: 0 0% 98%;
+                --border: 240 3.7% 15.9%;
+                --input: 240 3.7% 15.9%;
+                --ring: 240 4.9% 83.9%;
+              }
+          ${baseStyles}
+          </style>
         </head>
         <body class="dark">
           <div id="root"></div>
@@ -259,7 +246,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {galleryItems.map((item) => (
                 <Card
-                key={item.name}
+                key={item.id}
                 className="cursor-pointer hover:border-primary/50 transition-colors overflow-hidden group"
                 onClick={() => handleGalleryItemClick(item)}
                 >
@@ -275,7 +262,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
                         srcDoc={getIframeSrcDoc(item.code)}
                         title={item.name}
                         sandbox="allow-scripts allow-same-origin"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform border-0"
                         scrolling="no"
                     />
                     </div>
@@ -439,6 +426,10 @@ export function MainLayout() {
 
   const handleBackToPrompt = () => {
     setActiveView('prompt');
+    setGeneratedCode('');
+    setLayoutSuggestions('');
+    setPrompt('');
+    setImageUrl(null);
   }
 
   return (
