@@ -11,13 +11,37 @@ import {
     SheetTrigger,
     SheetTitle
 } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import { Logo } from '../icons/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { useAuth } from '@/hooks/use-auth';
+import Link from 'next/link';
 
 export function Header() {
     const [isSidebarOpen, setSidebarOpen] = React.useState(false);
     const isMobile = useIsMobile();
+    const { user, signOut } = useAuth();
+
+    const renderAuthArea = () => {
+        if (user) {
+            return (
+                <div className="flex items-center gap-4">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
+                        <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <Button variant="ghost" size="icon" onClick={signOut}>
+                        <LogOut />
+                    </Button>
+                </div>
+            )
+        }
+        return (
+             <Button asChild>
+                <Link href="/login">Sign In</Link>
+            </Button>
+        )
+    }
 
     if (isMobile) {
         return (
@@ -43,7 +67,7 @@ export function Header() {
                             </SheetTitle>
                         </SheetHeader>
                         <nav className="flex flex-col gap-2">
-                            {/* Add mobile navigation items here */}
+                           {renderAuthArea()}
                         </nav>
                     </SheetContent>
                 </Sheet>
@@ -59,10 +83,7 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-4">
-                <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                    <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
+                {renderAuthArea()}
             </div>
         </header>
     );
