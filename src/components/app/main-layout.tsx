@@ -37,6 +37,8 @@ import { Header } from './header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 export type Framework = 'react' | 'vue' | 'html';
 
@@ -336,6 +338,8 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
 }
 
 export function MainLayout() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [framework, setFramework] = React.useState<Framework>('react');
   const [prompt, setPrompt] = React.useState('');
   const [generatedCode, setGeneratedCode] = React.useState('');
@@ -357,6 +361,16 @@ export function MainLayout() {
   }, [activeView]);
 
   const onGenerate = async (currentPrompt: string, currentFramework: Framework, currentImageUrl?: string) => {
+    if (!user) {
+        toast({
+            title: 'Authentication Required',
+            description: 'Please sign in to generate components.',
+            variant: 'destructive',
+        });
+        router.push('/login');
+        return;
+    }
+
     if (!currentPrompt && !currentImageUrl) {
       toast({
         title: 'Prompt or image is required',
@@ -396,6 +410,16 @@ export function MainLayout() {
   };
 
   const onClone = async (url: string, currentFramework: Framework) => {
+    if (!user) {
+        toast({
+            title: 'Authentication Required',
+            description: 'Please sign in to clone components.',
+            variant: 'destructive',
+        });
+        router.push('/login');
+        return;
+    }
+
     if (!url) {
       toast({
         title: 'URL is empty',
@@ -472,3 +496,5 @@ export function MainLayout() {
     </div>
   );
 }
+
+    
