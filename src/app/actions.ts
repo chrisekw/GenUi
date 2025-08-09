@@ -46,6 +46,10 @@ export async function handleCloneUrl(
 }
 
 export async function handlePublishComponent(item: Omit<GalleryItem, 'image' | 'data-ai-hint' | 'id'> & { authorId: string }) {
+    if (!db) {
+        console.error('Firestore is not initialized.');
+        throw new Error('Database not available.');
+    }
     const newComponent = {
       ...item,
       likes: 0,
@@ -59,6 +63,10 @@ export async function handlePublishComponent(item: Omit<GalleryItem, 'image' | '
 }
 
 export async function getGalleryItems() {
+    if (!db) {
+        console.error('Firestore is not initialized, returning empty gallery.');
+        return [];
+    }
     const snapshot = await db.collection('components').orderBy('createdAt', 'desc').get();
     if (snapshot.empty) {
         return [];
@@ -71,6 +79,10 @@ export async function getGalleryItems() {
 }
 
 export async function handleLikeComponent(componentId: string) {
+    if (!db) {
+        console.error('Firestore is not initialized.');
+        throw new Error('Database not available.');
+    }
     const componentRef = db.collection('components').doc(componentId);
     await componentRef.update({
         likes: FieldValue.increment(1)
@@ -79,6 +91,10 @@ export async function handleLikeComponent(componentId: string) {
 }
 
 export async function handleCopyComponent(componentId: string) {
+    if (!db) {
+        console.error('Firestore is not initialized.');
+        throw new Error('Database not available.');
+    }
     const componentRef = db.collection('components').doc(componentId);
     await componentRef.update({
         copies: FieldValue.increment(1)
