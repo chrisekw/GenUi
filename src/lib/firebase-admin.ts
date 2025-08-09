@@ -16,6 +16,10 @@ if (!admin.apps.length) {
       });
     } catch (error) {
       console.error('Error parsing FIREBASE_SERVICE_ACCOUNT or initializing Firebase Admin SDK:', error);
+      // Fallback for environments where ADC might be available, but parsing failed.
+      admin.initializeApp({
+        projectId: 'genui-ai-component-generator',
+      });
     }
   } else {
     // Initialize without credentials, relying on ADC if available.
