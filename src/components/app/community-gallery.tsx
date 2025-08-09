@@ -108,7 +108,6 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
         background-color: hsl(var(--background));
         color: hsl(var(--foreground));
         font-family: Inter, sans-serif;
-        zoom: 0.5;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -117,10 +116,20 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
         min-height: 100vh;
         padding: 1rem;
         box-sizing: border-box;
+        transform-origin: top left;
+        transform: scale(0.5); 
+        width: 200%; 
+        height: 200%;
       }
     `;
     
     if (framework === 'react') {
+        const cleanedCode = code
+            .replace(/^import\s.*?;/gm, '')
+            .replace(/export\s+default\s+\w+;?/m, '')
+            .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ');
+        const componentName = code.match(/export\s+default\s+function\s+([A-Z]\w*)/)?.[1] || code.match(/export\s+const\s+([A-Z]\w*)/)?.[1] || 'Component';
+        
         return `
         <!DOCTYPE html>
         <html>
@@ -134,12 +143,9 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
             <body class="dark">
             <div id="root"></div>
             <script type="text/babel">
-                ${code
-                .replace(/^import\s.*?;/gm, '')
-                .replace(/export\s+default\s+\w+;?/m, '')
-                .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ')}
-                const Component = ${code.match(/export\s+default\s+(\w+)/)?.[1] || code.match(/export\s+(?:const|function)\s+([A-Z]\w*)/)?.[1] || '() => null'};
-                ReactDOM.render(<Component />, document.getElementById('root'));
+                ${cleanedCode}
+                const ComponentToRender = ${componentName};
+                ReactDOM.render(<ComponentToRender />, document.getElementById('root'));
             </script>
             </body>
         </html>
@@ -214,7 +220,7 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
                             srcDoc={getIframeSrcDoc(code, activeFramework as any)}
                             title={`${item.name} - ${activeFramework}`}
                             sandbox="allow-scripts allow-same-origin"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover border-0"
                             scrolling="no"
                         />
                       </div>

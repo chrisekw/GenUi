@@ -124,6 +124,12 @@ export function ComponentPreview({
     `;
 
     if (framework === 'react') {
+        const cleanedCode = code
+            .replace(/^import\s.*?;/gm, '')
+            .replace(/export\s+default\s+\w+;?/m, '')
+            .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ');
+        const componentName = code.match(/export\s+default\s+function\s+([A-Z]\w*)/)?.[1] || code.match(/export\s+const\s+([A-Z]\w*)/)?.[1] || 'Component';
+
       return `
         <!DOCTYPE html>
         <html>
@@ -137,12 +143,9 @@ export function ComponentPreview({
           <body class="dark">
             <div id="root"></div>
             <script type="text/babel">
-              ${code
-                .replace(/^import\s.*?;/gm, '')
-                .replace(/export\s+default\s+\w+;?/m, '')
-                .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ')}
-              const Component = ${code.match(/export\s+default\s+(\w+)/)?.[1] || code.match(/export\s+(?:const|function)\s+([A-Z]\w*)/)?.[1] || '() => null'};
-              ReactDOM.render(<Component />, document.getElementById('root'));
+              ${cleanedCode}
+              const ComponentToRender = ${componentName};
+              ReactDOM.render(<ComponentToRender />, document.getElementById('root'));
             </script>
           </body>
         </html>
