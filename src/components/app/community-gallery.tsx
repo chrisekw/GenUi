@@ -5,11 +5,12 @@ import * as React from 'react';
 import { type GalleryItem } from '@/lib/gallery-items';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, Copy, ThumbsUp, MessageSquare } from 'lucide-react';
+import { Eye, Copy, ThumbsUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { handleGenerateComponent } from '@/app/actions';
+import { handleGenerateComponent, handleLikeComponent, handleCopyComponent } from '@/app/actions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/use-auth';
 
 interface CommunityGalleryProps {
   galleryItems: GalleryItem[];
@@ -18,6 +19,7 @@ interface CommunityGalleryProps {
 export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loadingStates, setLoadingStates] = React.useState<Record<string, boolean>>({});
   const [generatedCodes, setGeneratedCodes] = React.useState<Record<string, Record<string, string>>>({});
   const [activeTabs, setActiveTabs] = React.useState<Record<string, string>>({});
@@ -27,19 +29,34 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
   };
 
   const handleCopyCode = (itemId: string, itemCode: string) => {
+    if (!user) {
+        toast({ title: 'Authentication required', description: 'You must be signed in to copy component code.', variant: 'destructive' });
+        router.push('/login');
+        return;
+    }
     const activeFramework = activeTabs[itemId] || 'react';
     const codeToCopy = generatedCodes[itemId]?.[activeFramework] || itemCode;
     navigator.clipboard.writeText(codeToCopy);
+    handleCopyComponent(itemId);
     toast({
       title: 'Copied to clipboard!',
       description: 'The component code has been copied.',
     });
   };
+  
+  const handleLike = (itemId: string) => {
+    if (!user) {
+        toast({ title: 'Authentication required', description: 'You must be signed in to like a component.', variant: 'destructive' });
+        router.push('/login');
+        return;
+    }
+    handleLikeComponent(itemId);
+  }
 
   const handleFrameworkChange = async (itemId: string, itemPrompt: string, framework: 'react' | 'vue' | 'html') => {
     setActiveTabs(prev => ({...prev, [itemId]: framework}));
     const itemKey = `${itemId}-${framework}`;
-    if (generatedCodes[itemId]?.[framework]) {
+    if (generatedCodes[itemId]?.[framework] || framework === 'react') {
       return;
     }
 
@@ -176,8 +193,8 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
           <p className="text-muted-foreground mt-2">Explore components created by the community.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {galleryItems.map((item, index) => {
-            const itemId = `${item.name}-${index}`;
+          {galleryItems.map((item) => {
+            const itemId = item.id;
             const initialCode = item.code;
             const activeFramework = activeTabs[itemId] || 'react';
             const code = generatedCodes[itemId]?.[activeFramework] || (activeFramework === 'react' ? initialCode : '');
@@ -212,12 +229,14 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
                         </TabsList>
                       </div>
                        <div className="p-4 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <Button variant="ghost" size="icon">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Button variant="ghost" size="sm" onClick={() => handleLike(itemId)} className="flex items-center gap-1">
                                     <ThumbsUp className="h-4 w-4"/>
+                                    <span>{item.likes || 0}</span>
                                 </Button>
-                                 <Button variant="ghost" size="icon">
-                                    <MessageSquare className="h-4 w-4"/>
+                                 <Button variant="ghost" size="sm" className="flex items-center gap-1 cursor-default">
+                                    <Copy className="h-4 w-4"/>
+                                    <span>{item.copies || 0}</span>
                                 </Button>
                             </div>
                             <Button variant="outline" onClick={() => handleCopyCode(itemId, item.code)}>

@@ -3,7 +3,10 @@
 import { generateUiComponent, GenerateUiComponentInput } from '@/ai/flows/generate-ui-component';
 import { optimizeComponentLayout } from '@/ai/flows/optimize-component-layout';
 import { cloneUrl, CloneUrlInput } from '@/ai/flows/clone-url-flow';
-import { galleryItems, type GalleryItem } from '@/lib/gallery-items';
+import { type GalleryItem } from '@/lib/gallery-items';
+import { db } from '@/lib/firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
+import { revalidatePath } from 'next/cache';
 
 export async function handleGenerateComponent(
   input: GenerateUiComponentInput
@@ -42,16 +45,43 @@ export async function handleCloneUrl(
     }
 }
 
-export async function handlePublishComponent(item: Omit<GalleryItem, 'image' | 'data-ai-hint'>) {
-    const newItem: GalleryItem = {
+export async function handlePublishComponent(item: Omit<GalleryItem, 'image' | 'data-ai-hint' | 'id'> & { authorId: string }) {
+    const newComponent = {
       ...item,
-      image: `https://placehold.co/600x400.png`,
-      'data-ai-hint': 'abstract component'
+      likes: 0,
+      copies: 0,
+      createdAt: FieldValue.serverTimestamp(),
     };
-    galleryItems.unshift(newItem);
+    await db.collection('components').add(newComponent);
+    revalidatePath('/community');
+    revalidatePath('/');
     return { success: true };
 }
 
 export async function getGalleryItems() {
-    return galleryItems;
+    const snapshot = await db.collection('components').orderBy('createdAt', 'desc').get();
+    if (snapshot.empty) {
+        return [];
+    }
+    const items: GalleryItem[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    } as GalleryItem));
+    return items;
+}
+
+export async function handleLikeComponent(componentId: string) {
+    const componentRef = db.collection('components').doc(componentId);
+    await componentRef.update({
+        likes: FieldValue.increment(1)
+    });
+    revalidatePath('/community');
+}
+
+export async function handleCopyComponent(componentId: string) {
+    const componentRef = db.collection('components').doc(componentId);
+    await componentRef.update({
+        copies: FieldValue.increment(1)
+    });
+    revalidatePath('/community');
 }

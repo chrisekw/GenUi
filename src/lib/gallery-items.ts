@@ -1,10 +1,14 @@
 export interface GalleryItem {
+  id: string;
   name: string;
   description: string;
   prompt: string;
-  image: string;
+  image?: string; // Kept optional for now
   'data-ai-hint'?: string;
   code: string;
+  authorId?: string;
+  likes?: number;
+  copies?: number;
 }
 
 export const galleryItems: GalleryItem[] = [];

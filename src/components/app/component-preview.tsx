@@ -15,6 +15,8 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { handlePublishComponent } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 interface ComponentPreviewProps {
   code: string;
@@ -39,8 +41,16 @@ export function ComponentPreview({
   const [componentName, setComponentName] = React.useState('');
   const [showPublishDialog, setShowPublishDialog] = React.useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const router = useRouter();
+
 
   const handlePublish = async () => {
+    if (!user) {
+        toast({ title: 'Authentication required', description: 'You must be signed in to publish a component.', variant: 'destructive' });
+        router.push('/login');
+        return;
+    }
     if (!componentName) {
       toast({
         title: 'Component name is required',
@@ -55,6 +65,7 @@ export function ComponentPreview({
         description: prompt, // Using prompt as description
         prompt: prompt,
         code: code,
+        authorId: user.uid,
       });
       toast({
         title: 'Component published!',
