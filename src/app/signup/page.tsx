@@ -33,6 +33,11 @@ export default function SignupPage() {
 
   const methods = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
   });
   const { control, handleSubmit, formState: { errors } } = methods;
 
@@ -119,4 +124,3 @@ export default function SignupPage() {
     </div>
   );
 }
-
