@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Users, Settings, LogOut, VenetianMask } from 'lucide-react';
+import { Home, Users, Settings, LogOut, VenetianMask, User } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Logo } from '../icons/logo';
