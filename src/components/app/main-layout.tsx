@@ -188,27 +188,24 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
                 </div>
             )}
             <div className="relative">
-            <Textarea
-                placeholder="A pricing card with three tiers and a call to action button."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="bg-background border rounded-lg p-4 pr-24 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
-            />
-            <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept="image/*"
+                <Textarea
+                    placeholder="A pricing card with three tiers and a call to action button."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    className="bg-background border rounded-lg p-4 pr-16 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
                 />
-                <Button variant="ghost" size="icon" onClick={handleUploadClick}>
-                <Upload />
-                </Button>
-                <Button size="icon" onClick={() => onGenerate(prompt, framework, imageUrl || undefined)} disabled={isLoading}>
-                <ArrowUp />
-                </Button>
-            </div>
+                <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept="image/*"
+                    />
+                    <Button size="icon" onClick={() => onGenerate(prompt, framework, imageUrl || undefined)} disabled={isLoading}>
+                        <ArrowUp />
+                    </Button>
+                </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center gap-2">
             {suggestionButtons.map((item, index) => (
