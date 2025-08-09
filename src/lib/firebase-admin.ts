@@ -1,13 +1,13 @@
 import * as admin from 'firebase-admin';
 
 if (!admin.apps.length) {
-  try {
-    admin.initializeApp({
-        projectId: "genui-ai-component-generator",
-    });
-  } catch (error) {
-    console.error('Firebase admin initialization error', error);
-  }
+  admin.initializeApp({
+    // Use the FIREBASE_CONFIG environment variable to automatically
+    // configure the Admin SDK.
+    ...(process.env.FIREBASE_CONFIG &&
+      JSON.parse(process.env.FIREBASE_CONFIG)),
+    projectId: 'genui-ai-component-generator',
+  });
 }
 
 const db = admin.firestore();
