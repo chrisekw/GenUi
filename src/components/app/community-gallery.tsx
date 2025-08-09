@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { handleGenerateComponent } from '@/app/actions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CodeDisplay } from './code-display';
 
 interface CommunityGalleryProps {
   galleryItems: GalleryItem[];
@@ -21,13 +20,16 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
   const { toast } = useToast();
   const [loadingStates, setLoadingStates] = React.useState<Record<string, boolean>>({});
   const [generatedCodes, setGeneratedCodes] = React.useState<Record<string, Record<string, string>>>({});
+  const [activeTabs, setActiveTabs] = React.useState<Record<string, string>>({});
 
   const handleUseComponent = (item: GalleryItem) => {
     router.push(`/?prompt=${encodeURIComponent(item.prompt)}`);
   };
 
-  const handleCopyCode = (code: string) => {
-    navigator.clipboard.writeText(code);
+  const handleCopyCode = (itemId: string, itemCode: string) => {
+    const activeFramework = activeTabs[itemId] || 'react';
+    const codeToCopy = generatedCodes[itemId]?.[activeFramework] || itemCode;
+    navigator.clipboard.writeText(codeToCopy);
     toast({
       title: 'Copied to clipboard!',
       description: 'The component code has been copied.',
@@ -35,6 +37,7 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
   };
 
   const handleFrameworkChange = async (itemId: string, itemPrompt: string, framework: 'react' | 'vue' | 'html') => {
+    setActiveTabs(prev => ({...prev, [itemId]: framework}));
     const itemKey = `${itemId}-${framework}`;
     if (generatedCodes[itemId]?.[framework]) {
       return;
@@ -64,52 +67,39 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
   const getIframeSrcDoc = (code: string, framework: 'react' | 'vue' | 'html') => {
     const baseStyles = `
       :root {
-          --background: 240 6% 10%;
-          --foreground: 0 0% 98%;
-          --card: 240 6% 10%;
-          --card-foreground: 0 0% 98%;
-          --popover: 240 6% 10%;
-          --popover-foreground: 0 0% 98%;
-          --primary: 0 0% 98%;
-          --primary-foreground: 240 5.9% 10%;
-          --secondary: 240 3.7% 15.9%;
-          --secondary-foreground: 0 0% 98%;
-          --muted: 240 3.7% 15.9%;
-          --muted-foreground: 240 5% 64.9%;
-          --accent: 240 3.7% 15.9%;
-          --accent-foreground: 0 0% 98%;
-          --destructive: 0 62.8% 30.6%;
-          --destructive-foreground: 0 0% 98%;
-          --border: 240 3.7% 15.9%;
-          --input: 240 3.7% 15.9%;
-          --ring: 240 4.9% 83.9%;
-      }
-      html.dark {
-          --background: 240 6% 10%;
-          --foreground: 0 0% 98%;
-          --card: 240 6% 10%;
-          --card-foreground: 0 0% 98%;
-          --popover: 240 6% 10%;
-          --popover-foreground: 0 0% 98%;
-          --primary: 0 0% 98%;
-          --primary-foreground: 240 5.9% 10%;
-          --secondary: 240 3.7% 15.9%;
-          --secondary-foreground: 0 0% 98%;
-          --muted: 240 3.7% 15.9%;
-          --muted-foreground: 240 5% 64.9%;
-          --accent: 240 3.7% 15.9%;
-          --accent-foreground: 0 0% 98%;
-          --destructive: 0 62.8% 30.6%;
-          --destructive-foreground: 0 0% 98%;
-          --border: 240 3.7% 15.9%;
-          --input: 240 3.7% 15.9%;
-          --ring: 240 4.9% 83.9%;
+        --background: 240 6% 10%;
+        --foreground: 0 0% 98%;
+        --card: 240 6% 10%;
+        --card-foreground: 0 0% 98%;
+        --popover: 240 6% 10%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 0 0% 98%;
+        --primary-foreground: 240 5.9% 10%;
+        --secondary: 240 3.7% 15.9%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 240 3.7% 15.9%;
+        --muted-foreground: 240 5% 64.9%;
+        --accent: 240 3.7% 15.9%;
+        --accent-foreground: 0 0% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 240 3.7% 15.9%;
+        --input: 240 3.7% 15.9%;
+        --ring: 240 4.9% 83.9%;
       }
       body { 
         background-color: hsl(var(--background));
         color: hsl(var(--foreground));
         font-family: Inter, sans-serif;
         zoom: 0.5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        padding: 1rem;
+        box-sizing: border-box;
       }
     `;
     
@@ -125,20 +115,45 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
             <style>${baseStyles}</style>
             </head>
             <body class="dark">
-            <div id="root" class="flex items-center justify-center w-full h-full min-h-screen p-4"></div>
+            <div id="root"></div>
             <script type="text/babel">
                 ${code
                 .replace(/^import\s.*?;/gm, '')
                 .replace(/export\s+default\s+\w+;?/m, '')
                 .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ')}
-                const Component = ${code.match(/export\s+default\s+(\w+)/)?.[1] || code.match(/export\s+const\s+(\w+)/)?.[1] || '() => null'};
+                const Component = ${code.match(/export\s+default\s+(\w+)/)?.[1] || code.match(/export\s+(?:const|function)\s+([A-Z]\w*)/)?.[1] || '() => null'};
                 ReactDOM.render(<Component />, document.getElementById('root'));
             </script>
             </body>
         </html>
         `;
     }
+    
+    if (framework === 'vue') {
+        return `
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <script src="https://unpkg.com/vue@3"></script>
+                <style>${baseStyles}</style>
+            </head>
+            <body class="dark">
+                <div id="app"></div>
+                <script>
+                    const component = {
+                        template: \`
+                            ${code.replace(/`/g, '\\`')}
+                        \`
+                    };
+                    Vue.createApp(component).mount('#app');
+                </script>
+            </body>
+        </html>
+        `;
+    }
 
+    // HTML
     return `
       <!DOCTYPE html>
       <html>
@@ -147,9 +162,7 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
           <style>${baseStyles}</style>
         </head>
         <body class="dark">
-          <div class="flex items-center justify-center w-full h-full min-h-screen p-4">
-            ${code}
-          </div>
+          ${code}
         </body>
       </html>
     `;
@@ -166,10 +179,11 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
           {galleryItems.map((item, index) => {
             const itemId = `${item.name}-${index}`;
             const initialCode = item.code;
-            const codes = { ...generatedCodes[itemId], react: generatedCodes[itemId]?.react || initialCode };
+            const activeFramework = activeTabs[itemId] || 'react';
+            const code = generatedCodes[itemId]?.[activeFramework] || (activeFramework === 'react' ? initialCode : '');
             
             return (
-                <Card key={itemId} className="overflow-hidden group flex flex-col">
+                <Card key={itemId} id={itemId} className="overflow-hidden group flex flex-col">
                   <Tabs defaultValue="react" className="w-full flex flex-col flex-grow" onValueChange={(fw) => handleFrameworkChange(itemId, item.prompt, fw as any)}>
                     <CardContent className="p-0 flex-grow">
                       <div className="aspect-video overflow-hidden bg-muted relative">
@@ -179,37 +193,13 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
                             Use Component
                           </Button>
                         </div>
-                        <TabsContent value="react" className="w-full h-full">
-                          <iframe
-                              srcDoc={getIframeSrcDoc(codes['react'] || '', 'react')}
-                              title={`${item.name} - React`}
-                              sandbox="allow-scripts allow-same-origin"
-                              className="w-full h-full object-cover"
-                              scrolling="no"
-                          />
-                        </TabsContent>
-                        <TabsContent value="vue" className="w-full h-full">
-                           {loadingStates[`${itemId}-vue`] ? <div className="flex items-center justify-center h-full">Loading...</div> :
-                            <iframe
-                                srcDoc={getIframeSrcDoc(codes['vue'] || '', 'vue')}
-                                title={`${item.name} - Vue`}
-                                sandbox="allow-scripts allow-same-origin"
-                                className="w-full h-full object-cover"
-                                scrolling="no"
-                            />
-                           }
-                        </TabsContent>
-                        <TabsContent value="html" className="w-full h-full">
-                          {loadingStates[`${itemId}-html`] ? <div className="flex items-center justify-center h-full">Loading...</div> :
-                            <iframe
-                                srcDoc={getIframeSrcDoc(codes['html'] || '', 'html')}
-                                title={`${item.name} - HTML`}
-                                sandbox="allow-scripts allow-same-origin"
-                                className="w-full h-full object-cover"
-                                scrolling="no"
-                            />
-                          }
-                        </TabsContent>
+                        <iframe
+                            srcDoc={getIframeSrcDoc(code, activeFramework as any)}
+                            title={`${item.name} - ${activeFramework}`}
+                            sandbox="allow-scripts allow-same-origin"
+                            className="w-full h-full object-cover"
+                            scrolling="no"
+                        />
                       </div>
                       <div className="p-4 border-b">
                         <p className="font-medium">{item.name}</p>
@@ -230,7 +220,7 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
                                     <MessageSquare className="h-4 w-4"/>
                                 </Button>
                             </div>
-                            <Button variant="outline" onClick={() => handleCopyCode(codes[ (document.querySelector(`#${CSS.escape(itemId)} [data-state=active]`) as HTMLElement)?.dataset.value || 'react'] || '')}>
+                            <Button variant="outline" onClick={() => handleCopyCode(itemId, item.code)}>
                                 <Copy className="h-4 w-4 mr-2" />
                                 Copy Code
                             </Button>
@@ -251,5 +241,3 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
     </div>
   );
 }
-
-    

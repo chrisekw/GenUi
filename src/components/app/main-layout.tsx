@@ -132,32 +132,19 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
           --input: 240 3.7% 15.9%;
           --ring: 240 4.9% 83.9%;
       }
-      html.dark {
-          --background: 240 6% 10%;
-          --foreground: 0 0% 98%;
-          --card: 240 6% 10%;
-          --card-foreground: 0 0% 98%;
-          --popover: 240 6% 10%;
-          --popover-foreground: 0 0% 98%;
-          --primary: 0 0% 98%;
-          --primary-foreground: 240 5.9% 10%;
-          --secondary: 240 3.7% 15.9%;
-          --secondary-foreground: 0 0% 98%;
-          --muted: 240 3.7% 15.9%;
-          --muted-foreground: 240 5% 64.9%;
-          --accent: 240 3.7% 15.9%;
-          --accent-foreground: 0 0% 98%;
-          --destructive: 0 62.8% 30.6%;
-          --destructive-foreground: 0 0% 98%;
-          --border: 240 3.7% 15.9%;
-          --input: 240 3.7% 15.9%;
-          --ring: 240 4.9% 83.9%;
-      }
       body { 
         background-color: hsl(var(--background));
         color: hsl(var(--foreground));
         font-family: Inter, sans-serif;
         zoom: 0.5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        padding: 1rem;
+        box-sizing: border-box;
       }
     `;
 
@@ -176,10 +163,8 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
     const renderScript = `
       try {
         const App = () => {
-          // This is a workaround for components that might need state or hooks
           const [_, forceUpdate] = React.useState(0);
           React.useEffect(() => {
-            // Some components might need a re-render to layout correctly
             requestAnimationFrame(() => forceUpdate(c => c + 1));
           }, []);
           return <${componentName} />;
@@ -202,7 +187,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
           <style>${baseStyles}</style>
         </head>
         <body class="dark">
-          <div id="root" class="flex items-center justify-center w-full h-full min-h-screen p-4"></div>
+          <div id="root"></div>
           <script type="text/babel">
             ${cleanedCode.replace(/export\s+default\s+\w+;?/m, '').replace(/export\s+(const|function)/, 'const')}
             ${renderScript}
@@ -362,11 +347,6 @@ export function MainLayout() {
 
   const onGenerate = async (currentPrompt: string, currentFramework: Framework, currentImageUrl?: string) => {
     if (!user) {
-        toast({
-            title: 'Authentication Required',
-            description: 'Please sign in to generate components.',
-            variant: 'destructive',
-        });
         router.push('/login');
         return;
     }
@@ -411,11 +391,6 @@ export function MainLayout() {
 
   const onClone = async (url: string, currentFramework: Framework) => {
     if (!user) {
-        toast({
-            title: 'Authentication Required',
-            description: 'Please sign in to clone components.',
-            variant: 'destructive',
-        });
         router.push('/login');
         return;
     }
@@ -496,5 +471,3 @@ export function MainLayout() {
     </div>
   );
 }
-
-    
