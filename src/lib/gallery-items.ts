@@ -6,6 +6,7 @@ export interface GalleryItem {
   image?: string; // Kept optional for now
   'data-ai-hint'?: string;
   code: string;
+  category?: string;
   authorId?: string;
   likes?: number;
   copies?: number;

@@ -10,13 +10,16 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Wand2 } from 'lucide-react';
 import type { Framework } from './main-layout';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { handlePublishComponent } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
+import { Textarea } from '../ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { componentCategories } from '@/lib/component-categories';
 
 interface ComponentPreviewProps {
   code: string;
@@ -39,6 +42,8 @@ export function ComponentPreview({
 }: ComponentPreviewProps) {
   const [isPublishing, setIsPublishing] = React.useState(false);
   const [componentName, setComponentName] = React.useState('');
+  const [componentDescription, setComponentDescription] = React.useState(prompt);
+  const [componentCategory, setComponentCategory] = React.useState('');
   const [showPublishDialog, setShowPublishDialog] = React.useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -51,9 +56,10 @@ export function ComponentPreview({
         router.push('/login');
         return;
     }
-    if (!componentName) {
+    if (!componentName || !componentCategory) {
       toast({
-        title: 'Component name is required',
+        title: 'All fields are required',
+        description: 'Please provide a name and category for the component.',
         variant: 'destructive',
       });
       return;
@@ -62,8 +68,9 @@ export function ComponentPreview({
     try {
       await handlePublishComponent({
         name: componentName,
-        description: prompt, // Using prompt as description
+        description: componentDescription,
         prompt: prompt,
+        category: componentCategory,
         code: code,
         authorId: user.uid,
       });
@@ -87,29 +94,8 @@ export function ComponentPreview({
 
   const getIframeSrcDoc = () => {
     const baseStyles = `
-      :root {
-        --background: 240 6% 10%;
-        --foreground: 0 0% 98%;
-        --card: 240 6% 10%;
-        --card-foreground: 0 0% 98%;
-        --popover: 240 6% 10%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 240 5.9% 10%;
-        --secondary: 240 3.7% 15.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 240 3.7% 15.9%;
-        --muted-foreground: 240 5% 64.9%;
-        --accent: 240 3.7% 15.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 240 3.7% 15.9%;
-        --input: 240 3.7% 15.9%;
-        --ring: 240 4.9% 83.9%;
-      }
       body { 
-        background-color: hsl(var(--background));
+        background-color: transparent;
         color: hsl(var(--foreground));
         font-family: Inter, sans-serif;
         display: flex;
@@ -128,7 +114,8 @@ export function ComponentPreview({
             .replace(/^import\s.*?;/gm, '')
             .replace(/export\s+default\s+\w+;?/m, '')
             .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ');
-        const componentName = code.match(/export\s+default\s+function\s+([A-Z]\w*)/)?.[1] || code.match(/export\s+const\s+([A-Z]\w*)/)?.[1] || 'Component';
+        const componentNameMatch = code.match(/export\s+(?:default\s+)?(?:function|const)\s+([A-Z]\w*)/);
+        const componentName = componentNameMatch ? componentNameMatch[1] : 'Component';
 
       return `
         <!DOCTYPE html>
@@ -138,7 +125,51 @@ export function ComponentPreview({
             <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
             <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
             <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-            <style>${baseStyles}</style>
+            <style>
+            :root {
+                --background: 240 6% 10%;
+                --foreground: 0 0% 98%;
+                --card: 240 6% 10%;
+                --card-foreground: 0 0% 98%;
+                --popover: 240 6% 10%;
+                --popover-foreground: 0 0% 98%;
+                --primary: 0 0% 98%;
+                --primary-foreground: 240 5.9% 10%;
+                --secondary: 240 3.7% 15.9%;
+                --secondary-foreground: 0 0% 98%;
+                --muted: 240 3.7% 15.9%;
+                --muted-foreground: 240 5% 64.9%;
+                --accent: 240 3.7% 15.9%;
+                --accent-foreground: 0 0% 98%;
+                --destructive: 0 62.8% 30.6%;
+                --destructive-foreground: 0 0% 98%;
+                --border: 240 3.7% 15.9%;
+                --input: 240 3.7% 15.9%;
+                --ring: 240 4.9% 83.9%;
+              }
+              .dark {
+                --background: 240 6% 10%;
+                --foreground: 0 0% 98%;
+                --card: 240 6% 10%;
+                --card-foreground: 0 0% 98%;
+                --popover: 240 6% 10%;
+                --popover-foreground: 0 0% 98%;
+                --primary: 0 0% 98%;
+                --primary-foreground: 240 5.9% 10%;
+                --secondary: 240 3.7% 15.9%;
+                --secondary-foreground: 0 0% 98%;
+                --muted: 240 3.7% 15.9%;
+                --muted-foreground: 240 5% 64.9%;
+                --accent: 240 3.7% 15.9%;
+                --accent-foreground: 0 0% 98%;
+                --destructive: 0 62.8% 30.6%;
+                --destructive-foreground: 0 0% 98%;
+                --border: 240 3.7% 15.9%;
+                --input: 240 3.7% 15.9%;
+                --ring: 240 4.9% 83.9%;
+              }
+            ${baseStyles}
+            </style>
           </head>
           <body class="dark">
             <div id="root"></div>
@@ -246,7 +277,7 @@ export function ComponentPreview({
                 </Button>
               </div>
             </div>
-            <TabsContent value="preview" className="flex-1 bg-muted/20">
+            <TabsContent value="preview" className="flex-1 bg-muted/20 relative">
               {isLoading && (
                   <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10">
                       <div className="flex flex-col items-center gap-4">
@@ -255,12 +286,12 @@ export function ComponentPreview({
                       </div>
                   </div>
               )}
-                <div className="relative w-full h-full rounded-md overflow-hidden">
+                <div className="relative w-full h-full rounded-md overflow-hidden bg-transparent">
                     <iframe
                         srcDoc={iframeSrcDoc}
                         title="Component Preview"
                         sandbox="allow-scripts allow-same-origin"
-                        className="w-full h-full"
+                        className="w-full h-full bg-transparent"
                         />
                 </div>
             </TabsContent>
@@ -284,26 +315,49 @@ export function ComponentPreview({
     <div className="h-full">
       {renderContent()}
       <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Publish to Community</DialogTitle>
+            <DialogDescription>
+              Share your component with the community. Provide a few details to make it discoverable.
+            </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
+          <div className="grid gap-6 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Component Name</Label>
               <Input
                 id="name"
                 value={componentName}
                 onChange={(e) => setComponentName(e.target.value)}
-                className="col-span-3"
-                placeholder="E.g. 'Cool Button'"
+                placeholder="E.g., 'Responsive Sign-up Form'"
               />
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                    id="description"
+                    value={componentDescription}
+                    onChange={(e) => setComponentDescription(e.target.value)}
+                    placeholder="A short description of the component."
+                    className="min-h-[100px]"
+                />
+            </div>
+             <div className="grid gap-2">
+                <Label htmlFor="category">Category</Label>
+                <Select onValueChange={setComponentCategory} value={componentCategory}>
+                    <SelectTrigger id="category">
+                        <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {componentCategories.map(category => (
+                            <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowPublishDialog(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowPublishDialog(false)}>Cancel</Button>
             <Button onClick={handlePublish} disabled={isPublishing}>
               {isPublishing ? 'Publishing...' : 'Publish'}
             </Button>
