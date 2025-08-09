@@ -35,7 +35,7 @@ const getUrlContentTool = ai.defineTool(
 
 const CloneUrlInputSchema = z.object({
   url: z.string().url().describe('The URL of the website to clone a component from.'),
-  framework: z.enum(['react', 'vue', 'html']).describe('The target framework for the generated code.'),
+  framework: z.enum(['react', 'html']).describe('The target framework for the generated code.'),
 });
 export type CloneUrlInput = z.infer<typeof CloneUrlInputSchema>;
 

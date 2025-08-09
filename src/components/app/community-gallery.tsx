@@ -53,7 +53,7 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
     handleLikeComponent(itemId);
   }
 
-  const handleFrameworkChange = async (itemId: string, itemPrompt: string, framework: 'react' | 'vue' | 'html') => {
+  const handleFrameworkChange = async (itemId: string, itemPrompt: string, framework: 'react' | 'html') => {
     setActiveTabs(prev => ({...prev, [itemId]: framework}));
     const itemKey = `${itemId}-${framework}`;
     if (generatedCodes[itemId]?.[framework] || framework === 'react') {
@@ -81,7 +81,7 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
     }
   }
 
-  const getIframeSrcDoc = (code: string, framework: 'react' | 'vue' | 'html') => {
+  const getIframeSrcDoc = (code: string, framework: 'react' | 'html') => {
     const baseStyles = `
       :root {
         --background: 240 6% 10%;
@@ -116,10 +116,6 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
         min-height: 100vh;
         padding: 1rem;
         box-sizing: border-box;
-        transform-origin: top left;
-        transform: scale(0.5); 
-        width: 200%; 
-        height: 200%;
       }
     `;
     
@@ -147,30 +143,6 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
                 const ComponentToRender = ${componentName};
                 ReactDOM.render(<ComponentToRender />, document.getElementById('root'));
             </script>
-            </body>
-        </html>
-        `;
-    }
-    
-    if (framework === 'vue') {
-        return `
-        <!DOCTYPE html>
-        <html>
-            <head>
-                <script src="https://cdn.tailwindcss.com"></script>
-                <script src="https://unpkg.com/vue@3"></script>
-                <style>${baseStyles}</style>
-            </head>
-            <body class="dark">
-                <div id="app"></div>
-                <script>
-                    const component = {
-                        template: \`
-                            ${code.replace(/`/g, '\\`')}
-                        \`
-                    };
-                    Vue.createApp(component).mount('#app');
-                </script>
             </body>
         </html>
         `;
@@ -228,9 +200,8 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
                         <p className="font-medium">{item.name}</p>
                       </div>
                       <div className="p-2 flex items-center justify-between">
-                         <TabsList className="grid w-full grid-cols-3">
+                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="react">React</TabsTrigger>
-                            <TabsTrigger value="vue">Vue</TabsTrigger>
                             <TabsTrigger value="html">HTML</TabsTrigger>
                         </TabsList>
                       </div>

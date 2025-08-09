@@ -183,30 +183,6 @@ export function ComponentPreview({
       `;
     }
 
-    if (framework === 'vue') {
-        return `
-        <!DOCTYPE html>
-        <html>
-            <head>
-                <script src="https://cdn.tailwindcss.com"></script>
-                <script src="https://unpkg.com/vue@3"></script>
-                <style>${baseStyles}</style>
-            </head>
-            <body class="dark">
-                <div id="app"></div>
-                <script>
-                    const component = {
-                        template: \`
-                            ${code.replace(/`/g, '\\`')}
-                        \`
-                    };
-                    Vue.createApp(component).mount('#app');
-                </script>
-            </body>
-        </html>
-        `;
-    }
-
     // HTML
     return `
       <!DOCTYPE html>
@@ -267,7 +243,6 @@ export function ComponentPreview({
                 <Tabs value={framework} onValueChange={(value) => onFrameworkChange(value as Framework)}>
                   <TabsList className="w-full">
                     <TabsTrigger value="react" className="flex-1">React</TabsTrigger>
-                    <TabsTrigger value="vue" className="flex-1">Vue</TabsTrigger>
                     <TabsTrigger value="html" className="flex-1">HTML</TabsTrigger>
                   </TabsList>
                 </Tabs>

@@ -40,7 +40,7 @@ import { Label } from '../ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 
-export type Framework = 'react' | 'vue' | 'html';
+export type Framework = 'react' | 'html';
 
 const suggestionButtons = [
   { icon: Layout, text: 'Landing Page', prompt: 'A professional landing page for a SaaS product. It should include a navigation bar, a hero section with a call-to-action, a features section with three columns, a pricing table with three tiers, a customer testimonials section, and a footer.' },
