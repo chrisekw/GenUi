@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -16,22 +15,11 @@ import {
   Layout,
   Upload,
   Link as LinkIcon,
-  Menu,
   Eye,
   X,
 } from 'lucide-react';
-import { Logo } from '../icons/logo';
 import Image from 'next/image';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Textarea } from '../ui/textarea';
-import { useIsMobile } from '@/hooks/use-mobile';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTrigger,
-  SheetTitle
-} from '@/components/ui/sheet';
 import { ComponentPreview } from './component-preview';
 import Link from 'next/link';
 import { Header } from './header';
@@ -150,10 +138,10 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
     `;
 
     const cleanedCode = code
-        .replace(/^import\s.*?;/gm, '')
-        .replace(/export\s+default\s+\w+;?/m, '')
-        .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ');
-    const componentName = code.match(/export\s+default\s+function\s+([A-Z]\w*)/)?.[1] || code.match(/export\s+(?:const|function)\s+([A-Z]\w*)/)?.[1] || 'Component';
+        .replace(/^import\\s.*?;/gm, '')
+        .replace(/export\\s+default\\s+\\w+;?/m, '')
+        .replace(/export\\s+(const|function)\\s+(\\w+)/, 'const $2 = ');
+    const componentName = code.match(/export\\s+default\\s+function\\s+([A-Z]\\w*)/)?.[1] || code.match(/export\\s+(?:const|function)\\s+([A-Z]\\w*)/)?.[1] || 'Component';
 
     return `
       <!DOCTYPE html>
