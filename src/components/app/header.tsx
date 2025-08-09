@@ -16,8 +16,13 @@ import { useAuth } from '@/hooks/use-auth';
 export function Header() {
     const { user } = useAuth();
     return (
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-             <div className="md:hidden">
+        <header className="flex h-14 items-center justify-between gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 lg:justify-end">
+             {/* Mobile Header */}
+            <div className="flex w-full items-center justify-between lg:hidden">
+                 <Link href="/" className="flex items-center gap-2 font-semibold">
+                    <Logo />
+                    <span className="">GenoUI</span>
+                </Link>
                 <Sheet>
                     <SheetTrigger asChild>
                         <Button
@@ -64,15 +69,7 @@ export function Header() {
                 </Sheet>
             </div>
             
-            <div className="w-full flex-1">
-                 <div className="w-full flex-1 md:hidden">
-                    <Link href="/" className="flex items-center justify-center gap-2 font-semibold">
-                        <Logo />
-                        <span className="">GenoUI</span>
-                    </Link>
-                </div>
-            </div>
-
+            {/* Desktop Header */}
              { !user && (
                 <Button asChild>
                     <Link href="/login">Sign In</Link>
