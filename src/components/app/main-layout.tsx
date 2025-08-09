@@ -159,6 +159,36 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
       }
     `;
 
+    const cleanedCode = code.replace(/^import\s.*?;/gm, '');
+    const exportMatch = cleanedCode.match(/export\s+(?:default\s+)?(?:function|const)\s+([A-Z]\w*)/m);
+    const componentName = exportMatch ? exportMatch[1] : null;
+
+    if (!componentName) {
+      // Fallback for when the regex fails
+      return `
+        <!DOCTYPE html>
+        <html><body><p style="color: red;">Error: Could not find a valid component to render.</p></body></html>
+      `;
+    }
+
+    const renderScript = `
+      try {
+        const App = () => {
+          // This is a workaround for components that might need state or hooks
+          const [_, forceUpdate] = React.useState(0);
+          React.useEffect(() => {
+            // Some components might need a re-render to layout correctly
+            requestAnimationFrame(() => forceUpdate(c => c + 1));
+          }, []);
+          return <${componentName} />;
+        };
+        ReactDOM.render(<App />, document.getElementById('root'));
+      } catch (e) {
+        document.getElementById('root').innerHTML = '<p style="color: red;">' + e.message + '</p>';
+        console.error(e);
+      }
+    `;
+
     return `
       <!DOCTYPE html>
       <html>
@@ -172,12 +202,8 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
         <body class="dark">
           <div id="root" class="flex items-center justify-center w-full h-full min-h-screen p-4"></div>
           <script type="text/babel">
-            ${code
-              .replace(/^import\s.*?;/gm, '')
-              .replace(/export\s+default\s+\w+;?/m, '')
-              .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ')}
-            const Component = ${code.match(/export\s+default\s+(\w+)/)?.[1] || code.match(/export\s+const\s+(\w+)/)?.[1] || '() => null'};
-            ReactDOM.render(<Component />, document.getElementById('root'));
+            ${cleanedCode.replace(/export\s+default\s+\w+;?/m, '').replace(/export\s+(const|function)/, 'const')}
+            ${renderScript}
           </script>
         </body>
       </html>
