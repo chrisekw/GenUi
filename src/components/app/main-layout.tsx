@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -39,6 +40,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
+import { Sidebar } from './sidebar';
 
 export type Framework = 'react' | 'html';
 
@@ -111,6 +113,27 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
 
   const getIframeSrcDoc = (code: string) => {
     const baseStyles = `
+      :root {
+        --background: 240 6% 10%;
+        --foreground: 0 0% 98%;
+        --card: 240 6% 10%;
+        --card-foreground: 0 0% 98%;
+        --popover: 240 6% 10%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 0 0% 98%;
+        --primary-foreground: 240 5.9% 10%;
+        --secondary: 240 3.7% 15.9%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 240 3.7% 15.9%;
+        --muted-foreground: 240 5% 64.9%;
+        --accent: 240 3.7% 15.9%;
+        --accent-foreground: 0 0% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 240 3.7% 15.9%;
+        --input: 240 3.7% 15.9%;
+        --ring: 240 4.9% 83.9%;
+      }
       body { 
         background-color: transparent;
         color: hsl(var(--foreground));
@@ -126,19 +149,11 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
       }
     `;
 
-    const cleanedCode = code.replace(/^import\s.*?;/gm, '');
-    const exportMatch = cleanedCode.match(/export\s+(?:default\s+)?(?:function|const)\s+([A-Z]\w*)/m);
-    const componentName = exportMatch ? exportMatch[1] : 'Component';
-
-    const renderScript = `
-      try {
-        const Component = ${componentName};
-        ReactDOM.render(<Component />, document.getElementById('root'));
-      } catch (e) {
-        document.getElementById('root').innerHTML = '<p style="color: red;">' + e.message + '</p>';
-        console.error(e);
-      }
-    `;
+    const cleanedCode = code
+        .replace(/^import\s.*?;/gm, '')
+        .replace(/export\s+default\s+\w+;?/m, '')
+        .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ');
+    const componentName = code.match(/export\s+default\s+function\s+([A-Z]\w*)/)?.[1] || code.match(/export\s+(?:const|function)\s+([A-Z]\w*)/)?.[1] || 'Component';
 
     return `
       <!DOCTYPE html>
@@ -148,36 +163,14 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
           <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
           <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
           <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-          <style>
-          :root {
-                --background: 240 6% 10%;
-                --foreground: 0 0% 98%;
-                --card: 240 6% 10%;
-                --card-foreground: 0 0% 98%;
-                --popover: 240 6% 10%;
-                --popover-foreground: 0 0% 98%;
-                --primary: 0 0% 98%;
-                --primary-foreground: 240 5.9% 10%;
-                --secondary: 240 3.7% 15.9%;
-                --secondary-foreground: 0 0% 98%;
-                --muted: 240 3.7% 15.9%;
-                --muted-foreground: 240 5% 64.9%;
-                --accent: 240 3.7% 15.9%;
-                --accent-foreground: 0 0% 98%;
-                --destructive: 0 62.8% 30.6%;
-                --destructive-foreground: 0 0% 98%;
-                --border: 240 3.7% 15.9%;
-                --input: 240 3.7% 15.9%;
-                --ring: 240 4.9% 83.9%;
-              }
-          ${baseStyles}
-          </style>
+          <style>${baseStyles}</style>
         </head>
         <body class="dark">
           <div id="root"></div>
           <script type="text/babel">
-            ${cleanedCode.replace(/export\s+default\s+\w+;?/m, '').replace(/export\s+(const|function)/, 'const')}
-            ${renderScript}
+            ${cleanedCode}
+            const ComponentToRender = ${componentName};
+            ReactDOM.render(<ComponentToRender />, document.getElementById('root'));
           </script>
         </body>
       </html>
@@ -433,32 +426,35 @@ export function MainLayout() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <Header />
-      <main className="flex-1 overflow-y-auto">
-        {activeView === 'prompt' && <PromptView 
-            prompt={prompt}
-            setPrompt={setPrompt}
-            onGenerate={onGenerate}
-            onClone={onClone}
-            isLoading={isLoading}
-            framework={framework}
-            galleryItems={galleryItems}
-            imageUrl={imageUrl}
-            setImageUrl={setImageUrl}
-        />}
-        {activeView === 'preview' && (
-          <ComponentPreview
-            code={generatedCode}
-            suggestions={layoutSuggestions}
-            isLoading={isLoading}
-            framework={framework}
-            prompt={prompt}
-            onBack={handleBackToPrompt}
-            onFrameworkChange={handleFrameworkChange}
-          />
-        )}
-      </main>
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+      <Sidebar />
+      <div className="flex flex-col">
+        <Header />
+        <main className="flex-1 overflow-y-auto">
+            {activeView === 'prompt' && <PromptView 
+                prompt={prompt}
+                setPrompt={setPrompt}
+                onGenerate={onGenerate}
+                onClone={onClone}
+                isLoading={isLoading}
+                framework={framework}
+                galleryItems={galleryItems}
+                imageUrl={imageUrl}
+                setImageUrl={setImageUrl}
+            />}
+            {activeView === 'preview' && (
+            <ComponentPreview
+                code={generatedCode}
+                suggestions={layoutSuggestions}
+                isLoading={isLoading}
+                framework={framework}
+                prompt={prompt}
+                onBack={handleBackToPrompt}
+                onFrameworkChange={handleFrameworkChange}
+            />
+            )}
+        </main>
+      </div>
     </div>
   );
 }
