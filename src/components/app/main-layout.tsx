@@ -63,6 +63,9 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
     } else {
         const newPrompt = item.prompt;
         setPrompt(newPrompt);
+        if (item.text === 'Image-based') {
+            handleUploadClick();
+        }
     }
   }
 
@@ -77,7 +80,11 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
     if (file) {
       const reader = new FileReader();
       reader.onload = (loadEvent) => {
-        setImageUrl(loadEvent.target?.result as string);
+        const result = loadEvent.target?.result as string;
+        setImageUrl(result);
+        if(!prompt.trim()) {
+            setPrompt("A component that looks like the image provided.");
+        }
       };
       reader.readAsDataURL(file);
     }
