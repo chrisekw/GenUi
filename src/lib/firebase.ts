@@ -3,12 +3,12 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCDCuz7WZSSi_IWGCpHyjPBtgJzQgiNN1c",
-  authDomain: "prospectiq-goupw.firebaseapp.com",
-  projectId: "prospectiq-goupw",
-  storageBucket: "prospectiq-goupw.firebasestorage.app",
-  messagingSenderId: "857375222885",
-  appId: "1:857375222885:web:6202879e391b4bf1a06a8c"
+  apiKey: "AIzaSyDVnU5vYbb8bhomfGSJxJNT19vMuqOWMMU",
+  authDomain: "genui-ai-component-generator.firebaseapp.com",
+  projectId: "genui-ai-component-generator",
+  storageBucket: "genui-ai-component-generator.firebasestorage.app",
+  messagingSenderId: "43837238710",
+  appId: "1:43837238710:web:77c8d54f669d695abee517"
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
