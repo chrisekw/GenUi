@@ -54,14 +54,18 @@ const prompt = ai.definePrompt({
   input: {schema: CloneUrlInputSchema},
   output: {schema: CloneUrlOutputSchema},
   tools: [getUrlContentTool],
-  prompt: `You are an expert in web development and UI component creation. Your task is to analyze the content of the provided URL and generate a UI component based on its structure and styling.
+  prompt: `You are an expert UI/UX designer and frontend developer. Your task is to analyze the design of the provided URL and create a new, improved, and production-ready component that is inspired by it.
 
-You will be given a URL. You need to fetch the content of this URL using the getUrlContent tool, understand its DOM structure and CSS, and then generate a single component that replicates its appearance. The generated code should use Tailwind CSS for styling.
+You are not just replicating the code. You are re-building the component from scratch using modern best practices, beautiful aesthetics, and clean, maintainable code.
+
+1.  **Analyze**: Use the \`getUrlContent\` tool to fetch the HTML and understand the DOM structure, layout, typography, and color scheme of the target URL.
+2.  **Redesign**: Re-imagine the component with a focus on modern design principles. Improve the visual hierarchy, spacing, and overall aesthetic. The result should be more beautiful and professional than the original.
+3.  **Implement**: Generate a single, production-grade component using Tailwind CSS for styling. The code must be clean, responsive, and accessible (including ARIA roles).
 
 The target framework is: {{{framework}}}
-URL to clone: {{{url}}}
+URL to clone and improve: {{{url}}}
 
-Respond with the code, and nothing else. Do not include any comments or explanations.
+Respond with the code for the new, improved component, and nothing else. Do not include any comments or explanations.
 `,
 });
 
