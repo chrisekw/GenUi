@@ -9,11 +9,10 @@ import { type GalleryItem } from '@/lib/gallery-items';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   ArrowUp,
-  Camera,
+  Image as ImageIcon,
   ChevronRight,
   CodeXml,
   Layout,
-  Upload,
   Link as LinkIcon,
   Eye,
   X,
@@ -27,7 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useAuth } from '@/hooks/use-auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Sidebar } from './sidebar';
 
 export type Framework = 'react' | 'html';
@@ -35,7 +34,7 @@ export type Framework = 'react' | 'html';
 const suggestionButtons = [
   { icon: Layout, text: 'Landing Page', prompt: 'A professional landing page for a SaaS product. It should include a navigation bar, a hero section with a call-to-action, a features section with three columns, a pricing table with three tiers, a customer testimonials section, and a footer.' },
   { icon: CodeXml, text: 'Sign Up Form', prompt: 'A sign up form with email and password fields, and a submit button.' },
-  { icon: Camera, text: 'Image-based', prompt: 'A card component based on an image of a product.' },
+  { icon: ImageIcon, text: 'Image-based', prompt: 'A component that looks like the image provided.' },
   { icon: LinkIcon, text: 'Clone URL', prompt: '' },
 ];
 
@@ -58,14 +57,12 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
 
 
   const handleSuggestionClick = (item: { text: string, prompt: string}) => {
-    if (item.text === 'Clone URL') {
+    const newPrompt = item.prompt;
+    setPrompt(newPrompt);
+    if (item.text === 'Image-based') {
+        handleUploadClick();
+    } else if (item.text === 'Clone URL') {
         setShowCloneDialog(true);
-    } else {
-        const newPrompt = item.prompt;
-        setPrompt(newPrompt);
-        if (item.text === 'Image-based') {
-            handleUploadClick();
-        }
     }
   }
 
@@ -109,6 +106,28 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
   const getIframeSrcDoc = (code: string) => {
     const baseStyles = `
       :root {
+        --background: 0 0% 100%;
+        --foreground: 240 10% 3.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 240 10% 3.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 240 10% 3.9%;
+        --primary: 240 5.9% 10%;
+        --primary-foreground: 0 0% 98%;
+        --secondary: 240 4.8% 95.9%;
+        --secondary-foreground: 240 5.9% 10%;
+        --muted: 240 4.8% 95.9%;
+        --muted-foreground: 240 3.8% 46.1%;
+        --accent: 240 4.8% 95.9%;
+        --accent-foreground: 240 5.9% 10%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 240 5.9% 90%;
+        --input: 240 5.9% 90%;
+        --ring: 240 5.9% 10%;
+        --radius: 0.5rem;
+      }
+      .dark {
         --background: 240 6% 10%;
         --foreground: 0 0% 98%;
         --card: 240 6% 10%;
@@ -174,7 +193,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
 
   return (
     <>
-        <div className="flex flex-col items-center justify-center h-full p-4 md:p-6">
+      <div className="flex flex-col items-center justify-center h-full p-4 md:p-6">
         <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
             <h1 className="text-4xl md:text-5xl font-medium text-center tracking-tight">
             What can I help you build?
@@ -210,7 +229,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
             <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center gap-2">
             {suggestionButtons.map((item, index) => (
                 <Button key={index} variant="outline" className="rounded-lg" onClick={() => handleSuggestionClick(item)}>
-                <item.icon className="mr-2" />
+                <item.icon className="mr-2 h-4 w-4" />
                 {item.text}
                 </Button>
             ))}
@@ -224,7 +243,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
             </div>
             <Button variant="ghost" asChild>
                 <Link href="/community">
-                    Browse All <ChevronRight className="ml-1" />
+                    Browse All <ChevronRight className="ml-1 h-4 w-4" />
                 </Link>
             </Button>
             </div>
@@ -297,6 +316,8 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
 export function MainLayout() {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [framework, setFramework] = React.useState<Framework>('react');
   const [prompt, setPrompt] = React.useState('');
   const [generatedCode, setGeneratedCode] = React.useState('');
@@ -316,6 +337,15 @@ export function MainLayout() {
       fetchGalleryItems();
     }
   }, [activeView]);
+
+  React.useEffect(() => {
+    const promptFromUrl = searchParams.get('prompt');
+    if (promptFromUrl) {
+      const decodedPrompt = decodeURIComponent(promptFromUrl);
+      setPrompt(decodedPrompt);
+      onGenerate(decodedPrompt, 'react');
+    }
+  }, [searchParams]);
 
   const onGenerate = async (currentPrompt: string, currentFramework: Framework, currentImageUrl?: string) => {
     if (!user) {
@@ -415,6 +445,7 @@ export function MainLayout() {
     setLayoutSuggestions('');
     setPrompt('');
     setImageUrl(null);
+    router.replace('/', undefined);
   }
 
   return (

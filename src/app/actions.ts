@@ -51,16 +51,42 @@ export async function handlePublishComponent(item: Omit<GalleryItem, 'image' | '
         console.error('Firestore is not initialized.');
         throw new Error('Database not available.');
     }
-    const newComponent = {
-      ...item,
+    const { code, ...remaningItem } = item;
+    const componentsCollection = db.collection('components');
+    
+    // Create the main component document without the code
+    const newComponentRef = await componentsCollection.add({
+      ...remaningItem,
       likes: 0,
       copies: 0,
       createdAt: FieldValue.serverTimestamp(),
-    };
-    await db.collection('components').add(newComponent);
+    });
+
+    // Store the code in a subcollection
+    await newComponentRef.collection('source').doc('code').set({
+        value: code,
+    });
+    
     revalidatePath('/community');
     revalidatePath('/');
-    return { success: true };
+    return { success: true, id: newComponentRef.id };
+}
+
+async function getComponentCode(componentId: string): Promise<string> {
+    if (!db) {
+        console.error('Firestore is not initialized.');
+        return '';
+    }
+    try {
+        const codeDoc = await db.collection('components').doc(componentId).collection('source').doc('code').get();
+        if (codeDoc.exists) {
+            return codeDoc.data()?.value || '';
+        }
+        return '';
+    } catch (error) {
+        console.error(`Error fetching code for component ${componentId}:`, error);
+        return '';
+    }
 }
 
 export async function getGalleryItems() {
@@ -72,10 +98,14 @@ export async function getGalleryItems() {
     if (snapshot.empty) {
         return [];
     }
-    const items: GalleryItem[] = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    } as GalleryItem));
+    const items: GalleryItem[] = await Promise.all(snapshot.docs.map(async (doc) => {
+        const code = await getComponentCode(doc.id);
+        return {
+            id: doc.id,
+            ...doc.data(),
+            code,
+        } as GalleryItem;
+    }));
     return items;
 }
 
