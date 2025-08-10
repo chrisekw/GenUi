@@ -2,7 +2,6 @@
 'use client';
 
 import * as React from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { CodeDisplay } from './code-display';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Lightbulb, Code as CodeIcon, Eye, ArrowLeft, Upload } from 'lucide-react';
@@ -81,6 +80,7 @@ export function ComponentPreview({
       setShowPublishDialog(false);
       router.push('/community');
     } catch (error) {
+      console.error("Publishing error:", error);
       toast({
         title: 'Error publishing component',
         description: 'There was an error publishing the component. Please try again.',

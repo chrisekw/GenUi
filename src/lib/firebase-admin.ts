@@ -1,40 +1,34 @@
 import * as admin from 'firebase-admin';
+import type { App } from 'firebase-admin/app';
 
+let app: App;
 let db: admin.firestore.Firestore;
 
 function initializeFirebaseAdmin() {
   if (admin.apps.length > 0) {
-    return admin.app();
+    app = admin.apps[0]!;
+    db = admin.firestore(app);
+    return;
   }
 
-  // Check if the service account environment variable is set
   const serviceAccountEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!serviceAccountEnv) {
-    console.error('FIREBASE_SERVICE_ACCOUNT environment variable is not set. Firebase Admin SDK will not be initialized.');
-    return null; // Return null to indicate initialization failure
+    console.warn('FIREBASE_SERVICE_ACCOUNT environment variable is not set. Firebase Admin SDK features will be disabled.');
+    return;
   }
 
   try {
-    // Parse the service account JSON from the environment variable
     const serviceAccount = JSON.parse(serviceAccountEnv);
-    
-    // Initialize the Firebase Admin SDK
-    return admin.initializeApp({
+    app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      projectId: serviceAccount.project_id || 'genui-ai-component-generator',
+      projectId: serviceAccount.project_id,
     });
+    db = admin.firestore(app);
   } catch (error: any) {
-    console.error('Error parsing FIREBASE_SERVICE_ACCOUNT or initializing Firebase Admin SDK:', error.message);
-    return null; // Return null on error
+    console.error('Error initializing Firebase Admin SDK:', error.message);
   }
 }
 
-// Attempt to initialize Firebase Admin
-const app = initializeFirebaseAdmin();
-
-// Only initialize db if the app was successfully initialized
-if (app) {
-  db = admin.firestore(app);
-}
+initializeFirebaseAdmin();
 
 export { db };

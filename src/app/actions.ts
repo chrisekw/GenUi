@@ -17,7 +17,7 @@ export async function handleGenerateComponent(
     let layoutSuggestions = "Could not generate suggestions.";
 
     try {
-        const layoutResult = await optimizeComponentLayout({ componentPrompt: input.prompt, framework: input.framework });
+        const layoutResult = await optimizeComponentLayout({ componentPrompt: input.prompt, framework: input.framework as 'react' | 'html' });
         layoutSuggestions = layoutResult.layoutSuggestions;
     } catch (layoutError) {
         console.error('Error in layout optimization flow:', layoutError);
@@ -51,12 +51,12 @@ async function publishComponentToDb(item: Omit<GalleryItem, 'id'> & { authorId: 
         console.error('Firestore is not initialized.');
         throw new Error('Database not available.');
     }
-    const { code, ...remaningItem } = item;
+    const { code, ...remainingItem } = item;
     const componentsCollection = db.collection('components');
     
     // Create the main component document without the code
     const newComponentRef = await componentsCollection.add({
-      ...remaningItem,
+      ...remainingItem,
       likes: 0,
       copies: 0,
       createdAt: FieldValue.serverTimestamp(),
@@ -106,11 +106,18 @@ export async function getGalleryItems() {
     }
     const items: GalleryItem[] = await Promise.all(snapshot.docs.map(async (doc) => {
         const code = await getComponentCode(doc.id);
+        const data = doc.data();
         return {
             id: doc.id,
-            ...doc.data(),
-            code,
-        } as GalleryItem;
+            name: data.name,
+            description: data.description,
+            prompt: data.prompt,
+            code: code,
+            category: data.category,
+            authorId: data.authorId,
+            likes: data.likes || 0,
+            copies: data.copies || 0,
+        };
     }));
     return items;
 }
