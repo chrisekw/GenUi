@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import {
     Sheet,
     SheetContent,
+    SheetHeader,
+    SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { Menu, Home, Users, Settings, LogOut, VenetianMask, User } from 'lucide-react';
@@ -132,6 +134,9 @@ export function Header() {
                         </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="flex flex-col p-0">
+                         <SheetHeader className="sr-only">
+                            <SheetTitle>Navigation Menu</SheetTitle>
+                        </SheetHeader>
                         {mobileNavContent}
                     </SheetContent>
                 </Sheet>
