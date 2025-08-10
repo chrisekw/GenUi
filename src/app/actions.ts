@@ -46,7 +46,7 @@ export async function handleCloneUrl(
     }
 }
 
-export async function handlePublishComponent(item: Omit<GalleryItem, 'image' | 'data-ai-hint' | 'id'> & { authorId: string }) {
+export async function handlePublishComponent(item: Omit<GalleryItem, 'id'> & { authorId: string }) {
     if (!db) {
         console.error('Firestore is not initialized.');
         throw new Error('Database not available.');

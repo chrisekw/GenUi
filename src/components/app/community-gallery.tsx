@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { handleGenerateComponent, handleLikeComponent, handleCopyComponent } from '@/app/actions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/use-auth';
+import { Wand2 } from 'lucide-react';
 
 interface CommunityGalleryProps {
   galleryItems: GalleryItem[];
@@ -146,7 +147,7 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
             .replace(/^import\s.*?;/gm, '')
             .replace(/export\s+default\s+\w+;?/m, '')
             .replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ');
-        const componentName = code.match(/export\s+default\s+function\s+([A-Z]\w*)/)?.[1] || code.match(/export\s+const\s+([A-Z]\w*)/)?.[1] || 'Component';
+        const componentName = code.match(/export\s+default\s+function\s+([A-Z]\w*)/)?.[1] || code.match(/export\s+(?:const|function)\s+([A-Z]\w*)/)?.[1] || 'Component';
         
         return `
         <!DOCTYPE html>
@@ -198,25 +199,38 @@ export function CommunityGallery({ galleryItems }: CommunityGalleryProps) {
             const initialCode = item.code;
             const activeFramework = activeTabs[itemId] || 'react';
             const code = generatedCodes[itemId]?.[activeFramework] || (activeFramework === 'react' ? initialCode : '');
-            
+            const itemKey = `${itemId}-${activeFramework}`;
+            const isLoading = loadingStates[itemKey];
+
             return (
                 <Card key={itemId} id={itemId} className="overflow-hidden group flex flex-col">
                   <Tabs defaultValue="react" className="w-full flex flex-col flex-grow" onValueChange={(fw) => handleFrameworkChange(itemId, item.prompt, fw as any)}>
                     <CardContent className="p-0 flex-grow">
                       <div className="aspect-video overflow-hidden bg-muted relative">
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <Button variant="secondary" onClick={() => handleUseComponent(item)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Use Component
-                          </Button>
-                        </div>
-                        <iframe
-                            srcDoc={getIframeSrcDoc(code, activeFramework as any)}
-                            title={`${item.name} - ${activeFramework}`}
-                            sandbox="allow-scripts allow-same-origin"
-                            className="w-full h-full object-cover border-0"
-                            scrolling="no"
-                        />
+                        {isLoading ? (
+                            <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">
+                                <div className="flex flex-col items-center gap-4">
+                                    <Wand2 className="h-10 w-10 animate-pulse text-primary" />
+                                    <p className="text-muted-foreground text-sm">Generating...</p>
+                                </div>
+                            </div>
+                        ) : (
+                          <>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Button variant="secondary" onClick={() => handleUseComponent(item)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Use Component
+                              </Button>
+                            </div>
+                            <iframe
+                                srcDoc={getIframeSrcDoc(code, activeFramework as any)}
+                                title={`${item.name} - ${activeFramework}`}
+                                sandbox="allow-scripts allow-same-origin"
+                                className="w-full h-full object-cover border-0"
+                                scrolling="no"
+                            />
+                          </>
+                        )}
                       </div>
                       <div className="p-4 border-b">
                         <p className="font-medium">{item.name}</p>

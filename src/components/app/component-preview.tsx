@@ -79,7 +79,7 @@ export function ComponentPreview({
         description: 'Your component is now available in the community gallery.',
       });
       setShowPublishDialog(false);
-      onBack();
+      router.push('/community');
     } catch (error) {
       toast({
         title: 'Error publishing component',
