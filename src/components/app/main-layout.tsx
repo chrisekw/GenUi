@@ -31,11 +31,16 @@ import { Sidebar } from './sidebar';
 
 export type Framework = 'react' | 'html';
 
-const suggestionButtons = [
-  { icon: Layout, text: 'Landing Page', prompt: 'A professional landing page for a SaaS product. It should include a navigation bar, a hero section with a call-to-action, a features section with three columns, a pricing table with three tiers, a customer testimonials section, and a footer.' },
-  { icon: CodeXml, text: 'Sign Up Form', prompt: 'A sign up form with email and password fields, and a submit button.' },
-  { icon: ImageIcon, text: 'Image-based', prompt: 'A component that looks like the image provided.' },
-  { icon: LinkIcon, text: 'Clone URL', prompt: '' },
+const samplePrompts = [
+    'A modern login form with social media buttons.',
+    'A product card with an image, title, price, and "Add to Cart" button.',
+    'A responsive navigation bar with a logo and links.',
+    'A hero section with a background image and a call-to-action.',
+    'A pricing table with three different plans.',
+    'A testimonial slider.',
+    'A contact form with name, email, and message fields.',
+    'A footer with social media icons and navigation links.',
+    'A sign up form with email and password fields, and a submit button.'
 ];
 
 interface PromptViewProps {
@@ -54,7 +59,23 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [showCloneDialog, setShowCloneDialog] = React.useState(false);
   const [cloneUrl, setCloneUrlValue] = React.useState('');
+  const [dynamicPrompt, setDynamicPrompt] = React.useState(samplePrompts[1]);
 
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+        const randomIndex = Math.floor(Math.random() * samplePrompts.length);
+        setDynamicPrompt(samplePrompts[randomIndex]);
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+  
+  const suggestionButtons = [
+    { icon: Layout, text: 'Landing Page', prompt: 'A professional landing page for a SaaS product. It should include a navigation bar, a hero section with a call-to-action, a features section with three columns, a pricing table with three tiers, a customer testimonials section, and a footer.' },
+    { icon: CodeXml, text: 'Dynamic Prompt', prompt: dynamicPrompt },
+    { icon: ImageIcon, text: 'Image-based', prompt: 'A component that looks like the image provided.' },
+    { icon: LinkIcon, text: 'Clone URL', prompt: '' },
+  ];
 
   const handleSuggestionClick = (item: { text: string, prompt: string}) => {
     const newPrompt = item.prompt;
@@ -230,7 +251,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
             {suggestionButtons.map((item, index) => (
                 <Button key={index} variant="outline" className="rounded-lg" onClick={() => handleSuggestionClick(item)}>
                 <item.icon className="mr-2 h-4 w-4" />
-                {item.text}
+                 {item.text === 'Dynamic Prompt' ? 'Random Suggestion' : item.text}
                 </Button>
             ))}
             </div>
