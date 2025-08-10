@@ -53,8 +53,6 @@ export async function handlePublishComponent(item: Omit<GalleryItem, 'image' | '
     }
     const newComponent = {
       ...item,
-      // Truncate description to avoid Firestore index size limits
-      description: item.description.length > 1500 ? item.description.substring(0, 1500) : item.description,
       likes: 0,
       copies: 0,
       createdAt: FieldValue.serverTimestamp(),
