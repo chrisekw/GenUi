@@ -46,7 +46,7 @@ export async function handleCloneUrl(
     }
 }
 
-export async function handlePublishComponent(item: Omit<GalleryItem, 'id'> & { authorId: string }) {
+async function publishComponentToDb(item: Omit<GalleryItem, 'id'> & { authorId: string }) {
     if (!db) {
         console.error('Firestore is not initialized.');
         throw new Error('Database not available.');
@@ -67,9 +67,15 @@ export async function handlePublishComponent(item: Omit<GalleryItem, 'id'> & { a
         value: code,
     });
     
+    return { success: true, id: newComponentRef.id };
+}
+
+
+export async function handlePublishComponent(item: Omit<GalleryItem, 'id'> & { authorId: string }) {
+    const result = await publishComponentToDb(item);
     revalidatePath('/community');
     revalidatePath('/');
-    return { success: true, id: newComponentRef.id };
+    return result;
 }
 
 async function getComponentCode(componentId: string): Promise<string> {
