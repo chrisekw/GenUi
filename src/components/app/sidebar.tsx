@@ -21,15 +21,15 @@ export function Sidebar() {
   const { user, signOut } = useAuth();
 
   return (
-    <aside className="hidden md:flex md:flex-col border-r bg-background w-[280px]">
-        <div className="flex h-14 items-center border-b p-4 lg:h-[60px] lg:px-6">
+    <aside className="hidden border-r bg-background md:flex md:flex-col fixed top-0 left-0 h-full w-[220px] lg:w-[280px] z-30">
+        <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
                 <Logo />
                 <span className="">GenoUI</span>
             </Link>
         </div>
-        <div className="flex-1">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+        <div className="flex-1 overflow-y-auto">
+            <nav className="grid items-start px-2 text-sm font-medium lg:px-4 py-4">
                 {navItems.map(({ href, icon: Icon, label }) => {
                     const isActive = pathname === href;
                     return (
@@ -60,13 +60,13 @@ export function Sidebar() {
                 {user ? (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="justify-start gap-3 px-3">
+                            <Button variant="ghost" className="justify-start gap-3 px-3 w-full">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={user.photoURL ?? ''} />
                                     <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
                                 </Avatar>
-                                <div className="flex flex-col items-start">
-                                    <span className="text-sm font-medium">{user.displayName || user.email}</span>
+                                <div className="flex flex-col items-start overflow-hidden">
+                                    <span className="text-sm font-medium truncate">{user.displayName || user.email}</span>
                                 </div>
                             </Button>
                         </DropdownMenuTrigger>
