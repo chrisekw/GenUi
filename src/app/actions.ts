@@ -6,11 +6,11 @@ import { optimizeComponentLayout } from '@/ai/flows/optimize-component-layout';
 import { cloneUrl, CloneUrlInput } from '@/ai/flows/clone-url-flow';
 import { getDb } from '@/lib/firebase-admin';
 import type { GalleryItem } from '@/lib/gallery-items';
-import { auth } from '@/lib/firebase';
 import { revalidatePath } from 'next/cache';
 import admin from 'firebase-admin';
 import createDOMPurify from 'isomorphic-dompurify';
 import { JSDOM } from 'jsdom';
+import { auth } from 'firebase-admin';
 
 export async function handleGenerateComponent(
   input: GenerateUiComponentInput
@@ -43,7 +43,7 @@ export async function handleCloneUrl(
     try {
         const result = await cloneUrl(input);
         return result;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error in clone URL flow:', error);
         throw new Error('Failed to clone URL.');
     }
@@ -158,7 +158,10 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html') => {
 
 export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHtml'> & { framework: 'react' | 'html' }) {
     const db = await getDb();
-    if (!auth.currentUser) {
+    
+    const { currentUser } = auth();
+
+    if (!currentUser) {
         throw new Error("Authentication is required to publish a component.");
     }
      if (!item || !item.name || !item.code) {
@@ -178,9 +181,9 @@ export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHt
             ...itemData,
             code, // Save original code
             previewHtml, // Save sanitized preview
-            authorId: auth.currentUser.uid,
-            authorName: auth.currentUser.displayName,
-            authorImage: auth.currentUser.photoURL,
+            authorId: currentUser.uid,
+            authorName: currentUser.displayName,
+            authorImage: currentUser.photoURL,
             likes: 0,
             copies: 0,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
