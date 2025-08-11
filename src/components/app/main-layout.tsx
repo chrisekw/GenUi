@@ -28,15 +28,14 @@ import { CommunityGallery } from './community-gallery';
 export type Framework = 'react' | 'html';
 
 const samplePrompts = [
-    'A modern login form with social media buttons.',
-    'A product card with an image, title, price, and "Add to Cart" button.',
-    'A responsive navigation bar with a logo and links.',
-    'A hero section with a background image and a call-to-action.',
-    'A pricing table with three different plans.',
-    'A testimonial slider.',
-    'A contact form with name, email, and message fields.',
-    'A footer with social media icons and navigation links.',
-    'A sign up form with email and password fields, and a submit button.'
+    "A sleek, futuristic dashboard UI with a dark theme. It should have a sidebar navigation with glowing icons, a main content area with several data visualization widgets (like line charts and donut charts), and a header with a search bar and user profile dropdown. Use a color palette of dark blues, purples, and electric pink for accents.",
+    "A minimalist e-commerce product page for a high-end watch. The design should be clean and luxurious, with a large product image on the left and product details (name, price, description) on the right. Include a 'Add to Cart' button with a subtle hover animation. Use a monochrome color scheme with a gold accent color. The font should be a classic serif.",
+    "A vibrant and friendly sign-up form for a mobile app. The form should have a playful illustration at the top, fields for username, email, and password, and a prominent 'Create Account' button. Use rounded corners for all elements and a bright color palette (e.g., coral, teal, and yellow).",
+    "A professional pricing table for a SaaS product. It should feature three tiers (e.g., Basic, Pro, Enterprise), with a clear list of features for each. The 'Pro' plan should be highlighted as the most popular choice. Use subtle gradients and drop shadows to give the table some depth. Include toggle for monthly/annual pricing.",
+    "A modern, image-centric blog layout. The design should feature a grid of cards, where each card represents a blog post and displays a large featured image, the post title, author, and a short excerpt. The layout should be responsive and collapse into a single column on mobile devices.",
+    "An interactive testimonial slider with a clean, modern design. Each slide should feature a customer's photo, their testimonial, name, and company. Include previous/next buttons and dot navigation. The transition between slides should be a smooth fade and slide effect.",
+    "A sophisticated hero section for a portfolio website. It should have a full-screen background video that plays on a loop, with a headline, a sub-headline, and a call-to-action button overlaid on top. The text should be white with a subtle text shadow to ensure readability.",
+    "A clean and organized settings page with a sidebar menu for different sections (e.g., Profile, Notifications, Billing). The main content area should display the corresponding settings form. Use toggle switches for boolean settings and clean input fields and buttons. The overall design should be simple and intuitive."
 ];
 
 interface PromptViewProps {
@@ -146,9 +145,9 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center gap-2">
             {suggestionButtons.map((item, index) => (
-                <Button key={index} variant="outline" className="rounded-lg flex-col h-24" onClick={() => handleSuggestionClick(item)}>
-                  <item.icon className="h-8 w-8 mb-2" />
-                  <span className="text-xs">{item.text}</span>
+                <Button key={index} variant="outline" className="rounded-lg flex flex-col items-center justify-center h-24 text-center p-2" onClick={() => handleSuggestionClick(item)}>
+                  <item.icon className="h-6 w-6 mb-2 flex-shrink-0" />
+                  <span className="text-xs leading-tight">{item.text}</span>
                 </Button>
             ))}
             </div>
