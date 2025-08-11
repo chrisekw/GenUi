@@ -10,7 +10,7 @@ import { Button } from '../ui/button';
 import { Wand2 } from 'lucide-react';
 import type { Framework } from './main-layout';
 import { useAuth } from '@/hooks/use-auth';
-import { publishComponent } from '@/app/actions';
+import { createAndSanitizePreview } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
 import { Input } from '../ui/input';
@@ -18,6 +18,9 @@ import { Label } from '../ui/label';
 import { ComponentRenderer } from './component-renderer';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import { cn } from '@/lib/utils';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 
 interface ComponentPreviewProps {
   code: string;
@@ -54,6 +57,10 @@ export function ComponentPreview({
 
 
   const handlePublish = async () => {
+    if (!user) {
+        toast({ title: 'You must be logged in to publish', variant: 'destructive'});
+        return;
+    }
     if (!componentName.trim()) {
         toast({ title: 'Component name is required', variant: 'destructive'});
         return;
@@ -61,14 +68,26 @@ export function ComponentPreview({
 
     setIsPublishing(true);
     try {
-        await publishComponent({
+        // 1. Generate the sanitized preview on the server
+        const { previewHtml } = await createAndSanitizePreview(code, framework);
+
+        // 2. Add the document from the client
+        await addDoc(collection(db, 'community_components'), {
             name: componentName,
             description: componentDescription,
             prompt: prompt,
-            code: code,
-            framework: framework,
+            code,
+            framework,
             category: 'Data Display', // Replace with dynamic category later
+            previewHtml,
+            authorId: user.uid,
+            authorName: user.displayName,
+            authorImage: user.photoURL,
+            likes: 0,
+            copies: 0,
+            createdAt: serverTimestamp(),
         });
+
         toast({
             title: 'Component published!',
             description: 'Your component is now available in the community.',
@@ -228,5 +247,3 @@ export function ComponentPreview({
     </div>
   )
 }
-
-    

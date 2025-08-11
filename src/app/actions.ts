@@ -5,13 +5,13 @@ import { generateUiComponent, GenerateUiComponentInput } from '@/ai/flows/genera
 import { optimizeComponentLayout } from '@/ai/flows/optimize-component-layout';
 import { cloneUrl, CloneUrlInput } from '@/ai/flows/clone-url-flow';
 import { enhancePrompt } from '@/ai/flows/enhance-prompt-flow';
-import { getDb } from '@/lib/firebase-admin';
-import type { GalleryItem } from '@/lib/gallery-items';
+import { db } from '@/lib/firebase';
+import type { GalleryItem, GalleryItemCreate } from '@/lib/gallery-items';
 import { revalidatePath } from 'next/cache';
-import admin from 'firebase-admin';
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs, DocumentData } from 'firebase/firestore';
 import createDOMPurify from 'isomorphic-dompurify';
 import { JSDOM } from 'jsdom';
-import { auth } from 'genkit';
+
 
 export async function handleGenerateComponent(
   input: GenerateUiComponentInput
@@ -120,7 +120,7 @@ const getIframeSrcDoc = (code: string, framework: 'html' | 'tailwindcss') => {
         box-sizing: border-box;
       }
     `;
-    const bodyClass = document.body.classList.contains('dark') ? 'dark' : '';
+    const bodyClass = ''; // This is server-side, cannot access document.body
 
     // HTML or Tailwind CSS
     return `
@@ -137,73 +137,55 @@ const getIframeSrcDoc = (code: string, framework: 'html' | 'tailwindcss') => {
     `;
   };
 
-export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHtml'> & { framework: 'html' | 'tailwindcss' }) {
-    const db = await getDb();
-    
-    const currentUser = auth();
-
-    if (!currentUser) {
-        throw new Error("Authentication is required to publish a component.");
+// This server action is now responsible for generating the sanitized HTML preview,
+// which is a server-side task, but the actual DB write is done on the client.
+export async function createAndSanitizePreview(code: string, framework: 'html' | 'tailwindcss') {
+    if (!code || !framework) {
+        throw new Error("Invalid component data for preview generation");
     }
-     if (!item || !item.name || !item.code) {
-      throw new Error("Invalid component data");
-    }
-
-    const { code, framework, ...itemData } = item;
-    const bodyClass = ''; // Simplified for server-side generation
-
     // Sanitize preview HTML
     let previewHtml = getIframeSrcDoc(code, framework);
     const window = new JSDOM('').window;
     const DOMPurify = createDOMPurify(window as any);
     previewHtml = DOMPurify.sanitize(previewHtml);
 
-    try {
-        const docRef = await db.collection('community_components').add({
-            ...itemData,
-            code, // Save original code
-            previewHtml, // Save sanitized preview
-            authorId: currentUser.uid,
-            authorName: currentUser.name,
-            authorImage: currentUser.picture,
-            likes: 0,
-            copies: 0,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-        revalidatePath('/community');
-        revalidatePath('/');
-        return { success: true, id: docRef.id };
-    } catch (error) {
-        console.error("🔥 Database publish error details:", error);
-        throw new Error("Failed to publish component.");
-    }
+    return { previewHtml };
 }
+
 
 export async function getCommunityComponents(limit_?: number): Promise<GalleryItem[]> {
     try {
-        const db = await getDb();
-        let query = db.collection('community_components').orderBy('createdAt', 'desc');
-        
+        const componentsCollection = collection(db, 'community_components');
+        let q = query(componentsCollection, orderBy('createdAt', 'desc'));
+
         if (limit_) {
-            query = query.limit(limit_);
+            q = query(q, limit(limit_));
         }
 
-        const componentsSnapshot = await query.get();
+        const componentsSnapshot = await getDocs(q);
 
         if (componentsSnapshot.empty) {
             return [];
         }
 
-        const items = componentsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        } as GalleryItem));
+        const items = componentsSnapshot.docs.map(doc => {
+            const data = doc.data() as DocumentData;
+            // Ensure Firestore Timestamps are converted to JS Dates
+            const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+            return {
+                id: doc.id,
+                ...data,
+                createdAt
+            } as GalleryItem;
+        });
 
+        revalidatePath('/community');
+        revalidatePath('/');
         return items;
 
     } catch (error) {
         console.error('Error fetching gallery items:', error);
+        // Returning an empty array is better than throwing an error for display components
         return [];
     }
 }

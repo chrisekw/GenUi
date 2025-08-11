@@ -13,6 +13,11 @@ export interface GalleryItem {
   likes?: number;
   copies?: number;
   createdAt?: Date;
+  framework: 'html' | 'tailwindcss';
 }
+
+// Data needed to create a new gallery item, some fields are generated on server/DB
+export type GalleryItemCreate = Omit<GalleryItem, 'id' | 'previewHtml' | 'createdAt'>;
+
 
 export const galleryItems: GalleryItem[] = [];

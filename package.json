@@ -45,7 +45,6 @@
     "dotenv": "^16.5.0",
     "embla-carousel-react": "^8.6.0",
     "firebase": "^12.1.0",
-    "firebase-admin": "^12.2.0",
     "genkit": "^1.16.0",
     "isomorphic-dompurify": "^2.14.0",
     "jsdom": "^24.1.1",
