@@ -53,27 +53,24 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [showCloneDialog, setShowCloneDialog] = React.useState(false);
   const [cloneUrl, setCloneUrlValue] = React.useState('');
-  const [dynamicPrompt, setDynamicPrompt] = React.useState(samplePrompts[1]);
-
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-        const randomIndex = Math.floor(Math.random() * samplePrompts.length);
-        setDynamicPrompt(samplePrompts[randomIndex]);
-    }, 60000); // 60 seconds
-
-    return () => clearInterval(interval);
-  }, []);
   
   const suggestionButtons = [
     { icon: Layout, text: 'Landing Page', prompt: 'A professional landing page for a SaaS product. It should include a navigation bar, a hero section with a call-to-action, a features section with three columns, a pricing table with three tiers, a customer testimonials section, and a footer.' },
-    { icon: CodeXml, text: 'Dynamic Prompt', prompt: dynamicPrompt },
+    { icon: CodeXml, text: 'Random Suggestion', prompt: '' },
     { icon: ImageIcon, text: 'Image-based', prompt: 'A component that looks like the image provided.' },
     { icon: LinkIcon, text: 'Clone URL', prompt: '' },
   ];
 
   const handleSuggestionClick = (item: { text: string, prompt: string}) => {
+    if (item.text === 'Random Suggestion') {
+        const randomIndex = Math.floor(Math.random() * samplePrompts.length);
+        setPrompt(samplePrompts[randomIndex]);
+        return;
+    }
+
     const newPrompt = item.prompt;
     setPrompt(newPrompt);
+
     if (item.text === 'Image-based') {
         handleUploadClick();
     } else if (item.text === 'Clone URL') {
@@ -151,7 +148,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
             {suggestionButtons.map((item, index) => (
                 <Button key={index} variant="outline" className="rounded-lg flex-col h-24" onClick={() => handleSuggestionClick(item)}>
                   <item.icon className="h-8 w-8 mb-2" />
-                  <span className="text-xs">{item.text === 'Dynamic Prompt' ? 'Random Suggestion' : item.text}</span>
+                  <span className="text-xs">{item.text}</span>
                 </Button>
             ))}
             </div>
