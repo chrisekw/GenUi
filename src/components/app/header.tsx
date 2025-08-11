@@ -115,7 +115,16 @@ export function Header() {
     );
 
     return (
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-20 md:px-6">
+        <header className="flex h-14 items-center justify-between gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-20 md:px-6">
+            <Link href="/" className="flex items-center gap-2 font-semibold md:hidden">
+                <Logo />
+                <span className="sr-only">GenoUI</span>
+            </Link>
+            
+            <div className="w-full flex-1">
+                {/* Can add search or other header elements here */}
+            </div>
+            
             <Sheet>
                 <SheetTrigger asChild>
                     <Button
@@ -134,10 +143,6 @@ export function Header() {
                     {mobileNavContent}
                 </SheetContent>
             </Sheet>
-            
-            <div className="w-full flex-1">
-                {/* Can add search or other header elements here */}
-            </div>
 
         </header>
     );
