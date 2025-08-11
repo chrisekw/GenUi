@@ -5,7 +5,7 @@ import { generateUiComponent, GenerateUiComponentInput } from '@/ai/flows/genera
 import { optimizeComponentLayout } from '@/ai/flows/optimize-component-layout';
 import { cloneUrl, CloneUrlInput } from '@/ai/flows/clone-url-flow';
 import { type GalleryItem } from '@/lib/gallery-items';
-import { getDb } from '@/lib/firebase-admin';
+import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { revalidatePath } from 'next/cache';
 
@@ -47,7 +47,6 @@ export async function handleCloneUrl(
 }
 
 async function publishComponentToDb(item: Omit<GalleryItem, 'id'> & { authorId: string }) {
-    const adminDb = getDb();
     if (!adminDb) {
         console.error('Firestore is not initialized.');
         throw new Error('Database not available.');
@@ -80,7 +79,6 @@ export async function handlePublishComponent(item: Omit<GalleryItem, 'id'> & { a
 }
 
 async function getComponentCode(componentId: string): Promise<string> {
-    const adminDb = getDb();
     if (!adminDb) {
         console.error('Firestore is not initialized.');
         return '';
@@ -98,7 +96,6 @@ async function getComponentCode(componentId: string): Promise<string> {
 }
 
 export async function getGalleryItems() {
-    const adminDb = getDb();
     if (!adminDb) {
         console.error('Firestore is not initialized, returning empty gallery.');
         return [];
@@ -131,7 +128,6 @@ export async function getGalleryItems() {
 }
 
 export async function handleLikeComponent(componentId: string) {
-    const adminDb = getDb();
     if (!adminDb) {
         console.error('Firestore is not initialized.');
         throw new Error('Database not available.');
@@ -144,7 +140,6 @@ export async function handleLikeComponent(componentId: string) {
 }
 
 export async function handleCopyComponent(componentId: string) {
-    const adminDb = getDb();
     if (!adminDb) {
         console.error('Firestore is not initialized.');
         throw new Error('Database not available.');
