@@ -1,4 +1,3 @@
-
 'use server';
 
 import { generateUiComponent, GenerateUiComponentInput } from '@/ai/flows/generate-ui-component';
@@ -8,6 +7,8 @@ import { getDb } from '@/lib/firebase-admin';
 import type { GalleryItem } from '@/lib/gallery-items';
 import { auth } from '@/lib/firebase';
 import { revalidatePath } from 'next/cache';
+import admin from 'firebase-admin';
+
 
 export async function handleGenerateComponent(
   input: GenerateUiComponentInput
@@ -51,6 +52,9 @@ export async function publishComponent(item: Omit<GalleryItem, 'id'>) {
     if (!auth.currentUser) {
         throw new Error("Authentication is required to publish a component.");
     }
+     if (!item || !item.name || !item.code) {
+      throw new Error("Invalid component data");
+    }
 
     const { code, ...itemData } = item;
 
@@ -62,10 +66,9 @@ export async function publishComponent(item: Omit<GalleryItem, 'id'>) {
             authorImage: auth.currentUser.photoURL,
             likes: 0,
             copies: 0,
-            createdAt: new Date(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
         
-        // Add code to a subcollection
         await docRef.collection('source').doc('code').set({ code });
 
         revalidatePath('/community');
