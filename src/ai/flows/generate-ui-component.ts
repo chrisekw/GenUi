@@ -14,7 +14,7 @@ import {z} from 'genkit';
 
 const GenerateUiComponentInputSchema = z.object({
   prompt: z.string().describe('A natural language description of the UI component to generate.'),
-  framework: z.enum(['react', 'html']).describe('The target framework for the generated code.'),
+  framework: z.enum(['react', 'html', 'tailwindcss']).describe('The target framework for the generated code.'),
   imageUrl: z.string().optional().describe("An optional image of a component to replicate, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
 export type GenerateUiComponentInput = z.infer<typeof GenerateUiComponentInputSchema>;
@@ -222,6 +222,7 @@ Here is a structured guide of components you are expected to be able to generate
 RULES
 DO:
 - Generate complete, clean, and valid UI code only.
+- If the user asks for 'tailwindcss', provide only the HTML structure with Tailwind CSS classes. Do not wrap it in a React component.
 - Include semantic HTML (<section>, <nav>, <main>, <form>, etc.) where appropriate.
 - Ensure accessibility (e.g., aria-*, proper labels, focus management).
 - Use Tailwind CSS by default unless the user specifies another styling system.

@@ -25,7 +25,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Sidebar } from './sidebar';
 import { CommunityGallery } from './community-gallery';
 
-export type Framework = 'react' | 'html';
+export type Framework = 'react' | 'html' | 'tailwindcss';
 
 const samplePrompts = [
     "A sleek, futuristic dashboard UI with a dark theme. It should have a sidebar navigation with glowing icons, a main content area with several data visualization widgets (like line charts and donut charts), and a header with a search bar and user profile dropdown. Use a color palette of dark blues, purples, and electric pink for accents.",
@@ -277,7 +277,7 @@ export function MainLayout() {
     }
 
     try {
-      const result = await handleCloneUrl({ url, framework: currentFramework });
+      const result = await handleCloneUrl({ url, framework: currentFramework === 'tailwindcss' ? 'html' : currentFramework });
       setGeneratedCode(result.code);
       setLayoutSuggestions(''); // No suggestions for cloned components for now
       setFramework(currentFramework);

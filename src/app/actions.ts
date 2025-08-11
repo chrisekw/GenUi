@@ -50,7 +50,7 @@ export async function handleCloneUrl(
     }
 }
 
-const getIframeSrcDoc = (code: string, framework: 'react' | 'html') => {
+const getIframeSrcDoc = (code: string, framework: 'react' | 'html' | 'tailwindcss') => {
     const baseStyles = `
       :root {
         --background: 0 0% 100%;
@@ -111,12 +111,14 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html') => {
     `;
 
     if (framework === 'react') {
-        const cleanedCode = code
-            .replace(/^import\\s.*?;/gm, '')
-            .replace(/export\\s+default\\s+\\w+;?/m, '')
-            .replace(/export\\s+(const|function)\\s+(\\w+)/, 'const $2 = ');
-        const componentNameMatch = code.match(/export\\s+(?:default\\s+)?(?:function|const)\\s+([A-Z]\\w*)/);
-        const componentName = componentNameMatch ? componentNameMatch[1] : 'Component';
+      const cleanedCode = code
+        .replace(/^import\\s.*?;/gm, '')
+        .replace(/export\\s+default\\s+\\w+;?/m, '');
+      
+      const componentNameMatch = cleanedCode.match(/(?:export\s+)?(?:function|const)\s+([A-Z]\w*)/);
+      const componentName = componentNameMatch ? componentNameMatch[1] : 'Component';
+
+      const finalCode = cleanedCode.replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ');
 
       return `
         <!DOCTYPE html>
@@ -133,16 +135,18 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html') => {
           <body class="bg-background text-foreground">
             <div id="root"></div>
             <script type="text/babel">
-              ${cleanedCode}
-              const ComponentToRender = ${componentName};
-              ReactDOM.render(<ComponentToRender />, document.getElementById('root'));
+              ${finalCode}
+              const ComponentToRender = typeof ${componentName} !== 'undefined' ? ${componentName} : null;
+              if (ComponentToRender) {
+                ReactDOM.render(<ComponentToRender />, document.getElementById('root'));
+              }
             </script>
           </body>
         </html>
       `;
     }
 
-    // HTML
+    // HTML or Tailwind CSS
     return `
       <!DOCTYPE html>
       <html>
@@ -157,7 +161,7 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html') => {
     `;
   };
 
-export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHtml'> & { framework: 'react' | 'html' }) {
+export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHtml'> & { framework: 'react' | 'html' | 'tailwindcss' }) {
     const db = await getDb();
     
     const { currentUser } = auth();

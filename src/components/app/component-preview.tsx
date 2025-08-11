@@ -122,6 +122,7 @@ export function ComponentPreview({
                     <TabsList className="w-full">
                         <TabsTrigger value="react" className="flex-1">React</TabsTrigger>
                         <TabsTrigger value="html" className="flex-1">HTML</TabsTrigger>
+                        <TabsTrigger value="tailwindcss" className="flex-1">Tailwind</TabsTrigger>
                     </TabsList>
                     </Tabs>
                     {user && (
