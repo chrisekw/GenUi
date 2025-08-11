@@ -10,7 +10,6 @@ import { Button } from '../ui/button';
 import { Wand2 } from 'lucide-react';
 import type { Framework } from './main-layout';
 import { useAuth } from '@/hooks/use-auth';
-import { createAndSanitizePreview } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
 import { Input } from '../ui/input';
@@ -54,7 +53,83 @@ export function ComponentPreview({
   const [componentName, setComponentName] = React.useState('');
   const [componentDescription, setComponentDescription] = React.useState('');
   const [viewport, setViewport] = React.useState<keyof typeof viewportSizes>('desktop');
+  const previewRef = React.useRef<HTMLDivElement>(null);
 
+
+  const getPreviewHtml = (): string => {
+    // This function is a stand-in for the ComponentRenderer's internal logic,
+    // ensuring we can get the HTML for publishing.
+    const baseStyles = `
+      :root {
+        --background: 0 0% 100%;
+        --foreground: 240 10% 3.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 240 10% 3.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 240 10% 3.9%;
+        --primary: 240 5.9% 10%;
+        --primary-foreground: 0 0% 98%;
+        --secondary: 240 4.8% 95.9%;
+        --secondary-foreground: 240 5.9% 10%;
+        --muted: 240 4.8% 95.9%;
+        --muted-foreground: 240 3.8% 46.1%;
+        --accent: 240 4.8% 95.9%;
+        --accent-foreground: 240 5.9% 10%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 240 5.9% 90%;
+        --input: 240 5.9% 90%;
+        --ring: 240 5.9% 10%;
+        --radius: 0.5rem;
+      }
+      .dark {
+        --background: 240 6% 10%;
+        --foreground: 0 0% 98%;
+        --card: 240 6% 10%;
+        --card-foreground: 0 0% 98%;
+        --popover: 240 6% 10%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 0 0% 98%;
+        --primary-foreground: 240 5.9% 10%;
+        --secondary: 240 3.7% 15.9%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 240 3.7% 15.9%;
+        --muted-foreground: 240 5% 64.9%;
+        --accent: 240 3.7% 15.9%;
+        --accent-foreground: 0 0% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 240 3.7% 15.9%;
+        --input: 240 3.7% 15.9%;
+        --ring: 240 4.9% 83.9%;
+      }
+      body { 
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-family: Inter, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        padding: 1rem;
+        box-sizing: border-box;
+      }
+    `;
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>${baseStyles}</style>
+        </head>
+        <body class="bg-background text-foreground">
+          ${code}
+        </body>
+      </html>
+    `;
+  };
 
   const handlePublish = async () => {
     if (!user) {
@@ -68,10 +143,8 @@ export function ComponentPreview({
 
     setIsPublishing(true);
     try {
-        // 1. Generate the sanitized preview on the server
-        const { previewHtml } = await createAndSanitizePreview(code, framework);
+        const previewHtml = getPreviewHtml();
 
-        // 2. Add the document from the client
         await addDoc(collection(db, 'community_components'), {
             name: componentName,
             description: componentDescription,
@@ -189,6 +262,7 @@ export function ComponentPreview({
                     </ToggleGroup>
 
                     <div 
+                        ref={previewRef}
                         className={cn(
                             "relative h-full transition-all duration-300 ease-in-out w-full",
                             "bg-background shadow-lg rounded-lg border"
