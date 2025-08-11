@@ -1,10 +1,9 @@
-
 'use client';
 
 import * as React from 'react';
 import { CodeDisplay } from './code-display';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Lightbulb, Code as CodeIcon, Eye, ArrowLeft, Share2 } from 'lucide-react';
+import { Lightbulb, Code as CodeIcon, Eye, ArrowLeft, Share2, Smartphone, Tablet, Laptop } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Wand2 } from 'lucide-react';
@@ -16,7 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { ComponentRenderer } from './component-renderer';
-
+import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
+import { cn } from '@/lib/utils';
 
 interface ComponentPreviewProps {
   code: string;
@@ -27,6 +27,12 @@ interface ComponentPreviewProps {
   onBack: () => void;
   onFrameworkChange: (framework: Framework) => void;
 }
+
+const viewportSizes = {
+  mobile: '375px',
+  tablet: '768px',
+  desktop: '100%',
+};
 
 export function ComponentPreview({
   code,
@@ -43,6 +49,7 @@ export function ComponentPreview({
   const [showPublishDialog, setShowPublishDialog] = React.useState(false);
   const [componentName, setComponentName] = React.useState('');
   const [componentDescription, setComponentDescription] = React.useState('');
+  const [viewport, setViewport] = React.useState<keyof typeof viewportSizes>('desktop');
 
 
   const handlePublish = async () => {
@@ -117,8 +124,8 @@ export function ComponentPreview({
                         <TabsTrigger value="suggestions"><Lightbulb className="h-4 w-4 md:mr-2" /><span className="hidden md:inline">Suggestions</span></TabsTrigger>
                     </TabsList>
                 </div>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Tabs value={framework} onValueChange={(value) => onFrameworkChange(value as Framework)}>
+                 <div className="flex items-center gap-2 w-full sm:w-auto">
+                     <Tabs value={framework} onValueChange={(value) => onFrameworkChange(value as Framework)}>
                     <TabsList className="w-full">
                         <TabsTrigger value="react" className="flex-1">React</TabsTrigger>
                         <TabsTrigger value="html" className="flex-1">HTML</TabsTrigger>
@@ -128,21 +135,46 @@ export function ComponentPreview({
                     {user && (
                          <Button variant="outline" onClick={() => setShowPublishDialog(true)} disabled={isPublishing}>
                             <Share2 className="mr-2 h-4 w-4" />
-                            Publish
+                            <span className="hidden sm:inline">Publish</span>
                         </Button>
                     )}
                 </div>
                 </div>
-                <TabsContent value="preview" className="flex-1 bg-muted/20 relative">
-                {isLoading && (
-                    <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10">
-                        <div className="flex flex-col items-center gap-4">
-                            <Wand2 className="h-12 w-12 animate-pulse text-primary" />
-                            <p className="text-muted-foreground">Generating component...</p>
+                <TabsContent value="preview" className="flex-1 bg-muted/20 relative flex flex-col items-center justify-center p-4 overflow-auto">
+                    {isLoading && (
+                        <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
+                            <div className="flex flex-col items-center gap-4">
+                                <Wand2 className="h-12 w-12 animate-pulse text-primary" />
+                                <p className="text-muted-foreground">Regenerating component...</p>
+                            </div>
                         </div>
+                    )}
+                     <ToggleGroup
+                        type="single"
+                        value={viewport}
+                        onValueChange={(value: keyof typeof viewportSizes) => {
+                            if (value) setViewport(value);
+                        }}
+                        aria-label="Viewport size"
+                        className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background rounded-lg p-1"
+                    >
+                        <ToggleGroupItem value="mobile" aria-label="Mobile viewport">
+                            <Smartphone className="h-4 w-4" />
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="tablet" aria-label="Tablet viewport">
+                            <Tablet className="h-4 w-4" />
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="desktop" aria-label="Desktop viewport">
+                            <Laptop className="h-4 w-4" />
+                        </ToggleGroupItem>
+                    </ToggleGroup>
+
+                    <div 
+                        className="relative h-full transition-all duration-300 ease-in-out"
+                        style={{ width: viewportSizes[viewport] }}
+                    >
+                       <ComponentRenderer code={code} framework={framework} />
                     </div>
-                )}
-                    <ComponentRenderer code={code} framework={framework} />
                 </TabsContent>
                 <TabsContent value="code" className="flex-1 overflow-y-auto p-4">
                     <CodeDisplay code={code} framework={framework} />
