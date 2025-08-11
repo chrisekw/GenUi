@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { handleGenerateComponent, handleCloneUrl } from '@/app/actions';
+import { handleGenerateComponent, handleCloneUrl, handleEnhancePrompt } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import {
   ArrowUp,
@@ -12,6 +12,7 @@ import {
   Layout,
   Link as LinkIcon,
   X,
+  Wand2
 } from 'lucide-react';
 import Image from 'next/image';
 import { Textarea } from '../ui/textarea';
@@ -52,6 +53,8 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [showCloneDialog, setShowCloneDialog] = React.useState(false);
   const [cloneUrl, setCloneUrlValue] = React.useState('');
+  const [isEnhancing, setIsEnhancing] = React.useState(false);
+  const { toast } = useToast();
   
   const suggestionButtons = [
     { icon: Layout, text: 'Landing Page', prompt: 'A professional landing page for a SaaS product. It should include a navigation bar, a hero section with a call-to-action, a features section with three columns, a pricing table with three tiers, a customer testimonials section, and a footer.' },
@@ -74,6 +77,23 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
         handleUploadClick();
     } else if (item.text === 'Clone URL') {
         setShowCloneDialog(true);
+    }
+  }
+
+  const enhancePromptAction = async () => {
+    if (!prompt.trim()) {
+        toast({ title: 'Please enter a prompt to enhance.', variant: 'destructive'});
+        return;
+    }
+    setIsEnhancing(true);
+    try {
+        const result = await handleEnhancePrompt(prompt);
+        setPrompt(result.enhancedPrompt);
+        toast({ title: 'Prompt enhanced!', description: 'Your prompt has been upgraded.' });
+    } catch(e: any) {
+        toast({ title: 'Failed to enhance prompt', description: e.message || 'An unknown error occurred.', variant: 'destructive'});
+    } finally {
+        setIsEnhancing(false);
     }
   }
   
@@ -128,7 +148,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
                     placeholder="A pricing card with three tiers and a call to action button."
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    className="bg-background border rounded-lg p-4 pr-16 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
+                    className="bg-background border rounded-lg p-4 pr-28 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
                 />
                 <div className="absolute bottom-3 right-3 flex items-center gap-2">
                     <input
@@ -138,7 +158,10 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
                         className="hidden"
                         accept="image/*"
                     />
-                    <Button size="icon" onClick={() => onGenerate(prompt, 'react', imageUrl || undefined)} disabled={isLoading}>
+                    <Button size="icon" variant="ghost" onClick={enhancePromptAction} disabled={isLoading || isEnhancing}>
+                        <Wand2 />
+                    </Button>
+                    <Button size="icon" onClick={() => onGenerate(prompt, 'react', imageUrl || undefined)} disabled={isLoading || isEnhancing}>
                         <ArrowUp />
                     </Button>
                 </div>

@@ -4,13 +4,14 @@
 import { generateUiComponent, GenerateUiComponentInput } from '@/ai/flows/generate-ui-component';
 import { optimizeComponentLayout } from '@/ai/flows/optimize-component-layout';
 import { cloneUrl, CloneUrlInput } from '@/ai/flows/clone-url-flow';
+import { enhancePrompt } from '@/ai/flows/enhance-prompt-flow';
 import { getDb } from '@/lib/firebase-admin';
 import type { GalleryItem } from '@/lib/gallery-items';
 import { revalidatePath } from 'next/cache';
 import admin from 'firebase-admin';
 import createDOMPurify from 'isomorphic-dompurify';
 import { JSDOM } from 'jsdom';
-import { auth } from 'firebase-admin';
+import { auth } from 'genkit';
 
 export async function handleGenerateComponent(
   input: GenerateUiComponentInput
@@ -36,6 +37,16 @@ export async function handleGenerateComponent(
     console.error('Error in component generation flow:', error);
     throw new Error(error.message || 'Failed to generate component.');
   }
+}
+
+export async function handleEnhancePrompt(prompt: string) {
+    try {
+        const result = await enhancePrompt({ prompt });
+        return result;
+    } catch (error: any) {
+        console.error('Error in enhance prompt flow:', error);
+        throw new Error('Failed to enhance prompt.');
+    }
 }
 
 export async function handleCloneUrl(
@@ -109,6 +120,8 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html' | 'tailwindcs
         box-sizing: border-box;
       }
     `;
+    const bodyClass = ''; // Simplified for server-side generation
+
 
     if (framework === 'react') {
       const cleanedCode = code
@@ -132,13 +145,19 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html' | 'tailwindcs
             ${baseStyles}
             </style>
           </head>
-          <body class="bg-background text-foreground">
+          <body class="${bodyClass}">
             <div id="root"></div>
             <script type="text/babel">
-              ${finalCode}
-              const ComponentToRender = typeof ${componentName} !== 'undefined' ? ${componentName} : null;
-              if (ComponentToRender) {
-                ReactDOM.render(<ComponentToRender />, document.getElementById('root'));
+              try {
+                ${finalCode}
+                const ComponentToRender = typeof ${componentName} !== 'undefined' ? ${componentName} : null;
+                if (ComponentToRender) {
+                  ReactDOM.render(<ComponentToRender />, document.getElementById('root'));
+                } else {
+                   document.getElementById('root').innerHTML = '<div style="color: red;">Error: Component not found or failed to render.</div>'
+                }
+              } catch (e) {
+                document.getElementById('root').innerHTML = '<div style="color: red;">Error: ' + e.message + '</div>'
               }
             </script>
           </body>
@@ -154,7 +173,7 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html' | 'tailwindcs
           <script src="https://cdn.tailwindcss.com"></script>
           <style>${baseStyles}</style>
         </head>
-        <body class="bg-background text-foreground">
+        <body class="${bodyClass}">
           ${code}
         </body>
       </html>
@@ -164,7 +183,7 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html' | 'tailwindcs
 export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHtml'> & { framework: 'react' | 'html' | 'tailwindcss' }) {
     const db = await getDb();
     
-    const { currentUser } = auth();
+    const currentUser = auth();
 
     if (!currentUser) {
         throw new Error("Authentication is required to publish a component.");
@@ -174,6 +193,7 @@ export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHt
     }
 
     const { code, framework, ...itemData } = item;
+    const bodyClass = ''; // Simplified for server-side generation
 
     // Sanitize preview HTML
     let previewHtml = getIframeSrcDoc(code, framework);
@@ -187,8 +207,8 @@ export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHt
             code, // Save original code
             previewHtml, // Save sanitized preview
             authorId: currentUser.uid,
-            authorName: currentUser.displayName,
-            authorImage: currentUser.photoURL,
+            authorName: currentUser.name,
+            authorImage: currentUser.picture,
             likes: 0,
             copies: 0,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
