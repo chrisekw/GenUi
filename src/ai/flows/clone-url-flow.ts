@@ -21,14 +21,17 @@ const getUrlContentTool = ai.defineTool(
     },
     async ({ url }) => {
       try {
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        });
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          return `Error fetching URL: Received status code ${response.status}. Please check if the URL is correct and accessible.`;
         }
         return await response.text();
       } catch (e: any) {
-        // Throw an error to be caught by the flow's error handler
-        throw new Error(`Failed to fetch content from ${url}: ${e.message}`);
+        return `Error fetching URL: ${e.message}. Please ensure the URL is valid and the server has CORS enabled if running in a browser environment.`;
       }
     }
 );
@@ -36,7 +39,7 @@ const getUrlContentTool = ai.defineTool(
 
 const CloneUrlInputSchema = z.object({
   url: z.string().url().describe('The URL of the website to clone a component from.'),
-  framework: z.enum(['react', 'html']).describe('The target framework for the generated code.'),
+  framework: z.enum(['react', 'html', 'tailwindcss']).describe('The target framework for the generated code.'),
 });
 export type CloneUrlInput = z.infer<typeof CloneUrlInputSchema>;
 
@@ -58,7 +61,7 @@ const prompt = ai.definePrompt({
 
 You are not just replicating the code. You are re-building the component from scratch using modern best practices, beautiful aesthetics, and clean, maintainable code.
 
-1.  **Analyze**: Use the \`getUrlContent\` tool to fetch the HTML and understand the DOM structure, layout, typography, and color scheme of the target URL.
+1.  **Analyze**: Use the \`getUrlContent\` tool to fetch the HTML and understand the DOM structure, layout, typography, and color scheme of the target URL. If the tool returns an error, report it back to the user instead of generating code.
 2.  **Redesign**: Re-imagine the component with a focus on modern design principles. Improve the visual hierarchy, spacing, and overall aesthetic. The result should be more beautiful and professional than the original.
 3.  **Implement**: Generate a single, production-grade component using Tailwind CSS for styling. The code must be clean, responsive, and accessible (including ARIA roles).
 
