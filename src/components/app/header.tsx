@@ -139,31 +139,6 @@ export function Header() {
                 {/* Can add search or other header elements here */}
             </div>
 
-            {user ? (
-                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="secondary" size="icon" className="rounded-full">
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src={user.photoURL ?? ''} />
-                                <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                            <span className="sr-only">Toggle user menu</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>{user.displayName || user.email}</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild><Link href="/settings">Settings</Link></DropdownMenuItem>
-                        <DropdownMenuItem asChild><Link href="/settings/profile">Profile</Link></DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            ) : (
-                <Button asChild>
-                    <Link href="/login">Sign In</Link>
-                </Button>
-            )}
         </header>
     );
 }
