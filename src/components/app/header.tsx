@@ -115,41 +115,55 @@ export function Header() {
     );
 
     return (
-        <header className="flex h-14 items-center justify-between gap-4 bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-20 lg:justify-end">
-             {/* Mobile Header */}
-            <div className="flex w-full items-center justify-between lg:hidden">
-                 <Link href="/" className="flex items-center gap-2 font-semibold">
-                    <Logo />
-                    <span className="">GenoUI</span>
-                </Link>
-                <Sheet>
-                    <SheetTrigger asChild>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="shrink-0"
-                        >
-                            <Menu className="h-5 w-5" />
-                            <span className="sr-only">Toggle navigation menu</span>
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="flex flex-col p-0">
-                         <SheetHeader className="sr-only">
-                            <SheetTitle>Navigation Menu</SheetTitle>
-                        </SheetHeader>
-                        {mobileNavContent}
-                    </SheetContent>
-                </Sheet>
-            </div>
-            
-            {/* Desktop Header */}
-            <div className="hidden w-full items-center justify-end lg:flex">
-                { !user && (
-                    <Button asChild>
-                        <Link href="/login">Sign In</Link>
+        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-20 md:px-6">
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0 md:hidden"
+                    >
+                        <Menu className="h-5 w-5" />
+                        <span className="sr-only">Toggle navigation menu</span>
                     </Button>
-                )}
+                </SheetTrigger>
+                <SheetContent side="left" className="flex flex-col p-0">
+                        <SheetHeader className="sr-only">
+                        <SheetTitle>Navigation Menu</SheetTitle>
+                    </SheetHeader>
+                    {mobileNavContent}
+                </SheetContent>
+            </Sheet>
+            
+            <div className="w-full flex-1">
+                {/* Can add search or other header elements here */}
             </div>
+
+            {user ? (
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="secondary" size="icon" className="rounded-full">
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={user.photoURL ?? ''} />
+                                <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <span className="sr-only">Toggle user menu</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>{user.displayName || user.email}</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild><Link href="/settings">Settings</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href="/settings/profile">Profile</Link></DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : (
+                <Button asChild>
+                    <Link href="/login">Sign In</Link>
+                </Button>
+            )}
         </header>
     );
 }

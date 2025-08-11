@@ -338,9 +338,9 @@ export function MainLayout() {
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <Sidebar />
-      <div className="flex flex-col md:pl-[220px] lg:pl-[280px]">
+      <div className="flex flex-col">
         <Header />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex flex-1 flex-col gap-4 bg-muted/40 md:gap-8">
             {activeView === 'prompt' && (
                 <>
                     <PromptView 
@@ -356,15 +356,17 @@ export function MainLayout() {
                 </>
             )}
             {activeView === 'preview' && (
-            <ComponentPreview
-                code={generatedCode}
-                suggestions={layoutSuggestions}
-                isLoading={isLoading}
-                framework={framework}
-                prompt={prompt}
-                onBack={handleBackToPrompt}
-                onFrameworkChange={handleFrameworkChange}
-            />
+            <div className="h-[calc(100vh-60px)]">
+                <ComponentPreview
+                    code={generatedCode}
+                    suggestions={layoutSuggestions}
+                    isLoading={isLoading}
+                    framework={framework}
+                    prompt={prompt}
+                    onBack={handleBackToPrompt}
+                    onFrameworkChange={handleFrameworkChange}
+                />
+            </div>
             )}
         </main>
       </div>
