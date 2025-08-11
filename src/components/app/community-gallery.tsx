@@ -61,7 +61,7 @@ export function CommunityGallery() {
             <Link key={item.id} href={`/community#${item.id}`} className="group">
               <Card className="overflow-hidden h-full">
                 <CardContent className="p-0">
-                    <div className="bg-muted aspect-[4/3] flex items-center justify-center overflow-hidden">
+                    <div className="bg-muted aspect-video flex items-center justify-center overflow-hidden">
                         <ComponentRenderer html={item.previewHtml} />
                     </div>
                      <div className="p-4">
