@@ -120,7 +120,7 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html' | 'tailwindcs
         box-sizing: border-box;
       }
     `;
-    const bodyClass = ''; // Simplified for server-side generation
+    const bodyClass = document.body.classList.contains('dark') ? 'dark' : '';
 
 
     if (framework === 'react') {

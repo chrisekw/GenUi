@@ -158,7 +158,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
                         className="hidden"
                         accept="image/*"
                     />
-                    <Button size="icon" variant="ghost" onClick={enhancePromptAction} disabled={isLoading || isEnhancing}>
+                    <Button size="icon" variant="ghost" onClick={enhancePromptAction} disabled={isLoading || isEnhancing} title="Enhance Prompt">
                         <Wand2 />
                     </Button>
                     <Button size="icon" onClick={() => onGenerate(prompt, 'react', imageUrl || undefined)} disabled={isLoading || isEnhancing}>
