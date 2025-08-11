@@ -33,6 +33,9 @@ export async function handleGenerateComponent(
   } catch (error: any)
 {
     console.error('Error in component generation flow:', error);
+    if (error.message && (error.message.includes('503') || /service unavailable/i.test(error.message))) {
+        throw new Error('The AI model is currently overloaded. Please try again in a few moments.');
+    }
     throw new Error(error.message || 'Failed to generate component.');
   }
 }
