@@ -3,24 +3,19 @@
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { getGalleryItems, handleGenerateComponent, handleCloneUrl } from '@/app/actions';
+import { handleGenerateComponent, handleCloneUrl } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import { type GalleryItem } from '@/lib/gallery-items';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   ArrowUp,
   Image as ImageIcon,
-  ChevronRight,
   CodeXml,
   Layout,
   Link as LinkIcon,
-  Eye,
   X,
 } from 'lucide-react';
 import Image from 'next/image';
 import { Textarea } from '../ui/textarea';
 import { ComponentPreview } from './component-preview';
-import Link from 'next/link';
 import { Header } from './header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
 import { Input } from '../ui/input';
@@ -49,13 +44,11 @@ interface PromptViewProps {
   onGenerate: (prompt: string, framework: Framework, imageUrl?: string) => void;
   onClone: (url: string, framework: Framework) => void;
   isLoading: boolean;
-  framework: Framework;
-  galleryItems: GalleryItem[];
   imageUrl: string | null;
   setImageUrl: (url: string | null) => void;
 }
 
-function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framework, galleryItems, imageUrl, setImageUrl }: PromptViewProps) {
+function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUrl, setImageUrl }: PromptViewProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [showCloneDialog, setShowCloneDialog] = React.useState(false);
   const [cloneUrl, setCloneUrlValue] = React.useState('');
@@ -86,12 +79,6 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
         setShowCloneDialog(true);
     }
   }
-
-  const handleGalleryItemClick = (item: GalleryItem) => {
-    const newPrompt = item.prompt;
-    setPrompt(newPrompt);
-    onGenerate(newPrompt, framework);
-  };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -120,97 +107,9 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
   }
   
   const handleClone = () => {
-    onClone(cloneUrl, framework);
+    onClone(cloneUrl, 'react');
     setShowCloneDialog(false);
   }
-
-  const getIframeSrcDoc = (code: string) => {
-    const baseStyles = `
-      :root {
-        --background: 0 0% 100%;
-        --foreground: 240 10% 3.9%;
-        --card: 0 0% 100%;
-        --card-foreground: 240 10% 3.9%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 240 10% 3.9%;
-        --primary: 240 5.9% 10%;
-        --primary-foreground: 0 0% 98%;
-        --secondary: 240 4.8% 95.9%;
-        --secondary-foreground: 240 5.9% 10%;
-        --muted: 240 4.8% 95.9%;
-        --muted-foreground: 240 3.8% 46.1%;
-        --accent: 240 4.8% 95.9%;
-        --accent-foreground: 240 5.9% 10%;
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 240 5.9% 90%;
-        --input: 240 5.9% 90%;
-        --ring: 240 5.9% 10%;
-        --radius: 0.5rem;
-      }
-      .dark {
-        --background: 240 6% 10%;
-        --foreground: 0 0% 98%;
-        --card: 240 6% 10%;
-        --card-foreground: 0 0% 98%;
-        --popover: 240 6% 10%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 240 5.9% 10%;
-        --secondary: 240 3.7% 15.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 240 3.7% 15.9%;
-        --muted-foreground: 240 5% 64.9%;
-        --accent: 240 3.7% 15.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 240 3.7% 15.9%;
-        --input: 240 3.7% 15.9%;
-        --ring: 240 4.9% 83.9%;
-      }
-      body { 
-        background-color: transparent;
-        color: hsl(var(--foreground));
-        font-family: Inter, sans-serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        min-height: 100vh;
-        padding: 1rem;
-        box-sizing: border-box;
-      }
-    `;
-
-    const cleanedCode = code
-        .replace(/^import\\s.*?;/gm, '')
-        .replace(/export\\s+default\\s+\\w+;?/m, '')
-        .replace(/export\\s+(const|function)\\s+(\\w+)/, 'const $2 = ');
-    const componentName = code.match(/export\\s+default\\s+function\\s+([A-Z]\\w*)/)?.[1] || code.match(/export\\s+(?:const|function)\\s+([A-Z]\\w*)/)?.[1] || 'Component';
-
-    return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <script src="https://cdn.tailwindcss.com"></script>
-          <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-          <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-          <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-          <style>${baseStyles}</style>
-        </head>
-        <body class="dark">
-          <div id="root"></div>
-          <script type="text/babel">
-            ${cleanedCode}
-            const ComponentToRender = ${componentName};
-            ReactDOM.render(<ComponentToRender />, document.getElementById('root'));
-          </script>
-        </body>
-      </html>
-    `;
-  };
 
   return (
     <>
@@ -242,7 +141,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
                         className="hidden"
                         accept="image/*"
                     />
-                    <Button size="icon" onClick={() => onGenerate(prompt, framework, imageUrl || undefined)} disabled={isLoading}>
+                    <Button size="icon" onClick={() => onGenerate(prompt, 'react', imageUrl || undefined)} disabled={isLoading}>
                         <ArrowUp />
                     </Button>
                 </div>
@@ -253,49 +152,6 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, framewo
                 <item.icon className="mr-2 h-4 w-4" />
                  {item.text === 'Dynamic Prompt' ? 'Random Suggestion' : item.text}
                 </Button>
-            ))}
-            </div>
-        </div>
-        <div className="w-full max-w-7xl mx-auto mt-16">
-            <div className="flex items-center justify-between mb-4">
-            <div>
-                <h2 className="text-2xl font-medium tracking-tight">From the Community</h2>
-                <p className="text-muted-foreground">Explore what the community is building.</p>
-            </div>
-            <Button variant="ghost" asChild>
-                <Link href="/community">
-                    Browse All <ChevronRight className="ml-1 h-4 w-4" />
-                </Link>
-            </Button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {galleryItems.map((item) => (
-                <Card
-                key={item.id}
-                className="cursor-pointer hover:border-primary/50 transition-colors overflow-hidden group"
-                onClick={() => handleGalleryItemClick(item)}
-                >
-                <CardContent className="p-0">
-                    <div className="aspect-video overflow-hidden bg-muted relative">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button variant="secondary">
-                            <Eye className="h-4 w-4 mr-2" />
-                            Use Component
-                        </Button>
-                    </div>
-                    <iframe
-                        srcDoc={getIframeSrcDoc(item.code)}
-                        title={item.name}
-                        sandbox="allow-scripts allow-same-origin"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform border-0"
-                        scrolling="no"
-                    />
-                    </div>
-                    <div className="p-4">
-                    <p className="font-medium">{item.name}</p>
-                    </div>
-                </CardContent>
-                </Card>
             ))}
             </div>
         </div>
@@ -347,18 +203,7 @@ export function MainLayout() {
   const [activeView, setActiveView] = React.useState('prompt'); // 'prompt' or 'preview'
   const [imageUrl, setImageUrl] = React.useState<string | null>(null);
   const { toast } = useToast();
-  const [galleryItems, setGalleryItems] = React.useState<GalleryItem[]>([]);
   
-  React.useEffect(() => {
-    const fetchGalleryItems = async () => {
-        const items = await getGalleryItems();
-        setGalleryItems(items.slice(0, 3)); // Show only 3 items on the main page
-    };
-    if (activeView === 'prompt') {
-      fetchGalleryItems();
-    }
-  }, [activeView]);
-
   React.useEffect(() => {
     const promptFromUrl = searchParams.get('prompt');
     if (promptFromUrl) {
@@ -366,6 +211,7 @@ export function MainLayout() {
       setPrompt(decodedPrompt);
       onGenerate(decodedPrompt, 'react');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const onGenerate = async (currentPrompt: string, currentFramework: Framework, currentImageUrl?: string) => {
@@ -481,8 +327,6 @@ export function MainLayout() {
                 onGenerate={onGenerate}
                 onClone={onClone}
                 isLoading={isLoading}
-                framework={framework}
-                galleryItems={galleryItems}
                 imageUrl={imageUrl}
                 setImageUrl={setImageUrl}
             />}

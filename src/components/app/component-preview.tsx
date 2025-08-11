@@ -4,21 +4,11 @@
 import * as React from 'react';
 import { CodeDisplay } from './code-display';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Lightbulb, Code as CodeIcon, Eye, ArrowLeft, Upload } from 'lucide-react';
+import { Lightbulb, Code as CodeIcon, Eye, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Wand2 } from 'lucide-react';
 import type { Framework } from './main-layout';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { handlePublishComponent } from '@/app/actions';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
-import { useRouter } from 'next/navigation';
-import { Textarea } from '../ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { componentCategories } from '@/lib/component-categories';
 
 interface ComponentPreviewProps {
   code: string;
@@ -39,58 +29,6 @@ export function ComponentPreview({
   onBack,
   onFrameworkChange,
 }: ComponentPreviewProps) {
-  const [isPublishing, setIsPublishing] = React.useState(false);
-  const [componentName, setComponentName] = React.useState('');
-  const [componentDescription, setComponentDescription] = React.useState(prompt);
-  const [componentCategory, setComponentCategory] = React.useState('');
-  const [showPublishDialog, setShowPublishDialog] = React.useState(false);
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const router = useRouter();
-
-
-  const handlePublish = async () => {
-    if (!user) {
-        toast({ title: 'Authentication required', description: 'You must be signed in to publish a component.', variant: 'destructive' });
-        router.push('/login');
-        return;
-    }
-    if (!componentName || !componentCategory) {
-      toast({
-        title: 'All fields are required',
-        description: 'Please provide a name and category for the component.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    setIsPublishing(true);
-    try {
-      await handlePublishComponent({
-        name: componentName,
-        description: componentDescription,
-        prompt: prompt,
-        category: componentCategory,
-        code: code,
-        authorId: user.uid,
-      });
-      toast({
-        title: 'Component published!',
-        description: 'Your component is now available in the community gallery.',
-      });
-      setShowPublishDialog(false);
-      router.push('/community');
-    } catch (error) {
-      console.error("Publishing error:", error);
-      toast({
-        title: 'Error publishing component',
-        description: 'There was an error publishing the component. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsPublishing(false);
-    }
-  };
-
 
   const getIframeSrcDoc = () => {
     const baseStyles = `
@@ -247,10 +185,6 @@ export function ComponentPreview({
                     <TabsTrigger value="html" className="flex-1">HTML</TabsTrigger>
                   </TabsList>
                 </Tabs>
-                <Button onClick={() => setShowPublishDialog(true)} variant="outline">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Publish
-                </Button>
               </div>
             </div>
             <TabsContent value="preview" className="flex-1 bg-muted/20 relative">
@@ -290,56 +224,6 @@ export function ComponentPreview({
   return (
     <div className="h-full">
       {renderContent()}
-      <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
-        <DialogContent className="sm:max-w-[480px]">
-          <DialogHeader>
-            <DialogTitle>Publish to Community</DialogTitle>
-            <DialogDescription>
-              Share your component with the community. Provide a few details to make it discoverable.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-6 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Component Name</Label>
-              <Input
-                id="name"
-                value={componentName}
-                onChange={(e) => setComponentName(e.target.value)}
-                placeholder="E.g., 'Responsive Sign-up Form'"
-              />
-            </div>
-            <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                    id="description"
-                    value={componentDescription}
-                    onChange={(e) => setComponentDescription(e.target.value)}
-                    placeholder="A short description of the component."
-                    className="min-h-[100px]"
-                />
-            </div>
-             <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
-                <Select onValueChange={setComponentCategory} value={componentCategory}>
-                    <SelectTrigger id="category">
-                        <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {componentCategories.map(category => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPublishDialog(false)}>Cancel</Button>
-            <Button onClick={handlePublish} disabled={isPublishing}>
-              {isPublishing ? 'Publishing...' : 'Publish'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
