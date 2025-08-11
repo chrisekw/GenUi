@@ -1,33 +1,46 @@
 
 import * as admin from 'firebase-admin';
 
+// This is the service account JSON object from your Firebase project settings.
+// It's recommended to store this in an environment variable.
+const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
+
+let db: admin.firestore.Firestore | null = null;
+
 function initializeAdmin() {
     if (admin.apps.length > 0) {
-        return admin.app();
+        // If the app is already initialized, just get the firestore instance.
+        db = admin.firestore();
+        return;
+    }
+
+    if (!serviceAccountString) {
+        console.error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
+        return;
     }
 
     try {
-        const app = admin.initializeApp({
-            credential: admin.credential.cert({
-                projectId: process.env.FIREBASE_PROJECT_ID,
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            }),
+        const serviceAccount = JSON.parse(serviceAccountString);
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
         });
+        db = admin.firestore();
         console.log('Firebase Admin SDK initialized successfully.');
-        return app;
     } catch (error: any) {
         console.error('Error initializing Firebase Admin SDK:', error.message);
-        // Prevent the app from crashing if initialization fails.
-        // The error will be caught and handled in the functions that use getDb().
-        return null;
+        // This will ensure getDb() returns null if initialization fails.
+        db = null; 
     }
 }
 
-export function getDb() {
-    const app = initializeAdmin();
-    if (!app) {
-        return null;
+/**
+ * Gets the initialized Firestore database instance.
+ * It initializes the Firebase Admin SDK if it hasn't been already.
+ * @returns The Firestore database instance, or null if initialization fails.
+ */
+export function getDb(): admin.firestore.Firestore | null {
+    if (!db) {
+        initializeAdmin();
     }
-    return admin.firestore();
+    return db;
 }
