@@ -1,35 +1,44 @@
 
 import * as admin from 'firebase-admin';
 
-let adminDb: admin.firestore.Firestore;
-
-if (!admin.apps.length) {
-  try {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-    console.log('Firebase Admin SDK initialized successfully.');
-  } catch (error: any) {
-    console.error('Firebase Admin SDK initialization failed:', error.message);
-    // We are not throwing an error here to avoid crashing the server during build
-    // The functions using db will handle the case where db is not available.
+// Check if the service account JSON is provided
+if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn(
+      'FIREBASE_SERVICE_ACCOUNT environment variable is not set. Firebase Admin SDK will not be initialized in production.'
+    );
   }
 }
 
-adminDb = admin.firestore();
+let adminDb: admin.firestore.Firestore;
 
-function getDb(): admin.firestore.Firestore {
-    if (!adminDb) {
-        console.error("Firestore is not initialized, returning placeholder.");
-        // This is a fallback to prevent crashing, but errors should be caught earlier.
-        // The actual functions should throw if the DB is not available.
-    }
-    return adminDb;
+try {
+  // Check if there are any initialized apps
+  if (!admin.apps.length) {
+    const serviceAccount = JSON.parse(
+      process.env.FIREBASE_SERVICE_ACCOUNT as string
+    );
+    // Initialize the app with a service account
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log('Firebase Admin SDK initialized successfully.');
+  }
+  adminDb = admin.firestore();
+} catch (error: any) {
+  console.error('Firebase Admin SDK initialization failed:', error.message);
+  // We are not throwing an error here to avoid crashing the server during build
+  // The functions using db will handle the case where db is not available.
 }
 
+function getDb(): admin.firestore.Firestore {
+  if (!adminDb) {
+    console.error('Firestore is not initialized, returning placeholder.');
+    // This is a fallback to prevent crashing, but errors should be caught earlier.
+    // The actual functions should throw if the DB is not available.
+    throw new Error('Database not available.');
+  }
+  return adminDb;
+}
 
 export { getDb };
