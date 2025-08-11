@@ -1,38 +1,23 @@
 
 import * as admin from 'firebase-admin';
 
-let db: admin.firestore.Firestore | undefined;
+let adminDb: admin.firestore.Firestore;
 
-function initializeFirebaseAdmin() {
-  if (admin.apps.length > 0) {
-    return admin.apps[0];
-  }
-
-  const serviceAccountEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!serviceAccountEnv) {
-    console.warn('FIREBASE_SERVICE_ACCOUNT environment variable is not set. Firebase Admin SDK features will be disabled.');
-    return undefined;
-  }
-
+if (!admin.apps.length) {
   try {
-    const serviceAccount = JSON.parse(serviceAccountEnv);
-    const app = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      projectId: serviceAccount.project_id,
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
     });
-    return app;
+    console.log('Firebase Admin SDK initialized successfully.');
   } catch (error: any) {
     console.error('Error initializing Firebase Admin SDK:', error.message);
-    return undefined;
   }
 }
 
-export function getDb() {
-  if (!db) {
-    const app = initializeFirebaseAdmin();
-    if (app) {
-      db = admin.firestore(app);
-    }
-  }
-  return db;
-}
+adminDb = admin.firestore();
+
+export { adminDb };
