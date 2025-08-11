@@ -48,6 +48,15 @@ export async function handleCloneUrl(
 
 async function publishComponentToDb(item: Omit<GalleryItem, 'id'> & { authorId: string }) {
     const adminDb = getDb();
+    if (!adminDb) {
+        console.error("🔥 Database publish error: Firestore is not initialized.");
+        throw new Error('Database not available.');
+    }
+
+    if (!item || !item.name || !item.code || !item.authorId) {
+      throw new Error("Invalid component data. Name, code, and authorId are required.");
+    }
+
     const { code, ...remainingItem } = item;
     const componentsCollection = adminDb.collection('components');
     
@@ -69,14 +78,23 @@ async function publishComponentToDb(item: Omit<GalleryItem, 'id'> & { authorId: 
 
 
 export async function handlePublishComponent(item: Omit<GalleryItem, 'id'> & { authorId: string }) {
-    const result = await publishComponentToDb(item);
-    revalidatePath('/community');
-    revalidatePath('/');
-    return result;
+    try {
+        const result = await publishComponentToDb(item);
+        revalidatePath('/community');
+        revalidatePath('/');
+        return result;
+    } catch (error) {
+        console.error("🔥 Database publish error:", error);
+        throw new Error("Database not available");
+    }
 }
 
 async function getComponentCode(componentId: string): Promise<string> {
     const adminDb = getDb();
+     if (!adminDb) {
+        console.error('Firestore is not initialized, cannot get component code.');
+        return '';
+    }
     try {
         const codeDoc = await adminDb.collection('components').doc(componentId).collection('source').doc('code').get();
         if (codeDoc.exists) {
@@ -90,8 +108,12 @@ async function getComponentCode(componentId: string): Promise<string> {
 }
 
 export async function getGalleryItems() {
+    const adminDb = getDb();
+    if (!adminDb) {
+        console.error('Firestore is not initialized, returning empty gallery.');
+        return [];
+    }
     try {
-        const adminDb = getDb();
         const snapshot = await adminDb.collection('components').orderBy('createdAt', 'desc').get();
         if (snapshot.empty) {
             return [];
@@ -114,14 +136,16 @@ export async function getGalleryItems() {
         return items;
     } catch (error) {
         console.error('Error fetching gallery items:', error);
-        // We are not re-throwing the error here to avoid crashing the page
-        // if the database is unavailable, but we are logging it.
         return [];
     }
 }
 
 export async function handleLikeComponent(componentId: string) {
     const adminDb = getDb();
+     if (!adminDb) {
+        console.error('Firestore is not initialized, cannot like component.');
+        return;
+    }
     const componentRef = adminDb.collection('components').doc(componentId);
     await componentRef.update({
         likes: FieldValue.increment(1)
@@ -131,6 +155,10 @@ export async function handleLikeComponent(componentId: string) {
 
 export async function handleCopyComponent(componentId: string) {
     const adminDb = getDb();
+     if (!adminDb) {
+        console.error('Firestore is not initialized, cannot copy component.');
+        return;
+    }
     const componentRef = adminDb.collection('components').doc(componentId);
     await componentRef.update({
         copies: FieldValue.increment(1)
