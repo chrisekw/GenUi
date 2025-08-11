@@ -149,9 +149,9 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center gap-2">
             {suggestionButtons.map((item, index) => (
-                <Button key={index} variant="outline" className="rounded-lg" onClick={() => handleSuggestionClick(item)}>
-                <item.icon className="mr-2 h-4 w-4" />
-                 {item.text === 'Dynamic Prompt' ? 'Random Suggestion' : item.text}
+                <Button key={index} variant="outline" className="rounded-lg flex-col h-24" onClick={() => handleSuggestionClick(item)}>
+                  <item.icon className="h-8 w-8 mb-2" />
+                  <span className="text-xs">{item.text === 'Dynamic Prompt' ? 'Random Suggestion' : item.text}</span>
                 </Button>
             ))}
             </div>
