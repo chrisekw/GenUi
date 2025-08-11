@@ -19,6 +19,8 @@ import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { componentCategories } from '@/lib/component-categories';
 
 
 interface ComponentPreviewProps {
@@ -52,6 +54,7 @@ export function ComponentPreview({
   const [showPublishDialog, setShowPublishDialog] = React.useState(false);
   const [componentName, setComponentName] = React.useState('');
   const [componentDescription, setComponentDescription] = React.useState('');
+  const [componentCategory, setComponentCategory] = React.useState('');
   const [viewport, setViewport] = React.useState<keyof typeof viewportSizes>('desktop');
   const previewRef = React.useRef<HTMLDivElement>(null);
 
@@ -136,8 +139,8 @@ export function ComponentPreview({
         toast({ title: 'You must be logged in to publish', variant: 'destructive'});
         return;
     }
-    if (!componentName.trim()) {
-        toast({ title: 'Component name is required', variant: 'destructive'});
+    if (!componentName.trim() || !componentCategory.trim()) {
+        toast({ title: 'Name and category are required', variant: 'destructive'});
         return;
     }
 
@@ -151,7 +154,7 @@ export function ComponentPreview({
             prompt: prompt,
             code,
             framework,
-            category: 'Data Display', // Replace with dynamic category later
+            category: componentCategory,
             previewHtml,
             authorId: user.uid,
             authorName: user.displayName,
@@ -301,6 +304,19 @@ export function ComponentPreview({
                      <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="description" className="text-right">Description</Label>
                         <Input id="description" value={componentDescription} onChange={(e) => setComponentDescription(e.target.value)} className="col-span-3" placeholder="A brief description of your component."/>
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="category" className="text-right">Category</Label>
+                        <Select onValueChange={setComponentCategory}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {componentCategories.map((cat) => (
+                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
                 <DialogFooter>
