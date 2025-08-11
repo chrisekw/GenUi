@@ -157,7 +157,7 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html') => {
   };
 
 export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHtml'> & { framework: 'react' | 'html' }) {
-    const db = getDb();
+    const db = await getDb();
     if (!auth.currentUser) {
         throw new Error("Authentication is required to publish a component.");
     }
@@ -197,7 +197,7 @@ export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHt
 
 export async function getCommunityComponents(limit_?: number): Promise<GalleryItem[]> {
     try {
-        const db = getDb();
+        const db = await getDb();
         let query = db.collection('community_components').orderBy('createdAt', 'desc');
         
         if (limit_) {
