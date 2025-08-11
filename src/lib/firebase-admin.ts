@@ -16,7 +16,10 @@ function initializeAdmin() {
   }
 
   try {
-    const serviceAccount = JSON.parse(serviceAccountStr);
+    // Decode the Base64 service account key
+    const decodedServiceAccount = Buffer.from(serviceAccountStr, 'base64').toString('utf-8');
+    const serviceAccount = JSON.parse(decodedServiceAccount);
+    
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
