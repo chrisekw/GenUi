@@ -10,16 +10,8 @@ function initializeAdmin() {
     return;
   }
   
-  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!serviceAccountKey) {
-    throw new Error(
-      'FIREBASE_SERVICE_ACCOUNT environment variable is not set.'
-    );
-  }
-
   try {
-    const decodedKey = Buffer.from(serviceAccountKey, 'base64').toString('utf-8');
-    const serviceAccount = JSON.parse(decodedKey);
+    const serviceAccount = require('../../../serviceAccountKey.json');
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
