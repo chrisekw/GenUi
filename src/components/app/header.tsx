@@ -115,7 +115,7 @@ export function Header() {
     );
 
     return (
-        <header className="flex h-14 items-center justify-between gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-20 lg:justify-end">
+        <header className="flex h-14 items-center justify-between gap-4 bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-20 lg:justify-end">
              {/* Mobile Header */}
             <div className="flex w-full items-center justify-between lg:hidden">
                  <Link href="/" className="flex items-center gap-2 font-semibold">
