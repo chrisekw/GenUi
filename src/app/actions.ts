@@ -31,9 +31,9 @@ export async function handleGenerateComponent(
       code: componentResult.code,
       suggestions: layoutSuggestions,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in component generation flow:', error);
-    throw new Error('Failed to generate component.');
+    throw new Error(error.message || 'Failed to generate component.');
   }
 }
 
