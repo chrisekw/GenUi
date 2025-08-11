@@ -1,18 +1,13 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Allow read access to community components for everyone
+    // Allow anyone to read community components
     match /community_components/{componentId} {
       allow read: if true;
+      // Allow authenticated users to create new components
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.authorId;
-    }
-
-    // Allow users to manage their own data
-    match /users/{userId}/{documents=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Allow users to update or delete only their own components
+      allow update, delete: if request.auth.uid == resource.data.authorId;
     }
   }
 }
