@@ -300,7 +300,7 @@ export function MainLayout() {
     }
 
     try {
-      const result = await handleCloneUrl({ url, framework: currentFramework === 'tailwindcss' ? 'html' : currentFramework });
+      const result = await handleCloneUrl({ url, framework: currentFramework });
       setGeneratedCode(result.code);
       setLayoutSuggestions(''); // No suggestions for cloned components for now
       setFramework(currentFramework);
@@ -373,3 +373,5 @@ export function MainLayout() {
     </div>
   );
 }
+
+    

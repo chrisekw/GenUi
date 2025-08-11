@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -169,8 +170,11 @@ export function ComponentPreview({
                     </ToggleGroup>
 
                     <div 
-                        className="relative h-full transition-all duration-300 ease-in-out"
-                        style={{ width: viewportSizes[viewport] }}
+                        className={cn(
+                            "relative h-full transition-all duration-300 ease-in-out w-full",
+                            "bg-background shadow-lg rounded-lg border"
+                        )}
+                        style={{ maxWidth: viewportSizes[viewport] }}
                     >
                        <ComponentRenderer code={code} framework={framework} />
                     </div>
@@ -224,3 +228,5 @@ export function ComponentPreview({
     </div>
   )
 }
+
+    
