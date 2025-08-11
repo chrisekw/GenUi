@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -12,6 +13,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 import type { GalleryItem } from '@/lib/gallery-items';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ComponentRenderer } from '@/components/app/component-renderer';
 
 
 export default function CommunityFeedPage() {
@@ -108,9 +110,9 @@ export default function CommunityFeedPage() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                    <div className="bg-muted aspect-video rounded-md flex items-center justify-center p-4">
-                        <span className="text-sm text-muted-foreground">Preview coming soon</span>
-                    </div>
+                        <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
+                           <ComponentRenderer html={item.previewHtml} />
+                        </div>
                     </CardContent>
                     <CardFooter className="flex flex-col items-start gap-4">
                         <div>
