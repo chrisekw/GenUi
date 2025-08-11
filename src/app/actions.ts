@@ -187,6 +187,7 @@ export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHt
         });
 
         revalidatePath('/community');
+        revalidatePath('/');
         return { success: true, id: docRef.id };
     } catch (error) {
         console.error("Error publishing component to Firestore: ", error);
@@ -194,11 +195,17 @@ export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHt
     }
 }
 
-export async function getCommunityComponents(): Promise<GalleryItem[]> {
+export async function getCommunityComponents(limit_?: number): Promise<GalleryItem[]> {
     try {
         const db = getDb();
-        const componentsSnapshot = await db.collection('community_components').orderBy('createdAt', 'desc').limit(20).get();
+        let query = db.collection('community_components').orderBy('createdAt', 'desc');
         
+        if (limit_) {
+            query = query.limit(limit_);
+        }
+
+        const componentsSnapshot = await query.get();
+
         if (componentsSnapshot.empty) {
             return [];
         }

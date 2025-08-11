@@ -23,6 +23,7 @@ import { Label } from '../ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Sidebar } from './sidebar';
+import { CommunityGallery } from './community-gallery';
 
 export type Framework = 'react' | 'html';
 
@@ -113,7 +114,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center h-full p-4 md:p-6">
+      <div className="flex flex-col items-center justify-center p-4 md:p-6 my-12">
         <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
             <h1 className="text-4xl md:text-5xl font-medium text-center tracking-tight">
             What can I help you build?
@@ -321,15 +322,20 @@ export function MainLayout() {
       <div className="flex flex-col md:pl-[220px] lg:pl-[280px]">
         <Header />
         <main className="flex-1 overflow-y-auto">
-            {activeView === 'prompt' && <PromptView 
-                prompt={prompt}
-                setPrompt={setPrompt}
-                onGenerate={onGenerate}
-                onClone={onClone}
-                isLoading={isLoading}
-                imageUrl={imageUrl}
-                setImageUrl={setImageUrl}
-            />}
+            {activeView === 'prompt' && (
+                <>
+                    <PromptView 
+                        prompt={prompt}
+                        setPrompt={setPrompt}
+                        onGenerate={onGenerate}
+                        onClone={onClone}
+                        isLoading={isLoading}
+                        imageUrl={imageUrl}
+                        setImageUrl={setImageUrl}
+                    />
+                    <CommunityGallery />
+                </>
+            )}
             {activeView === 'preview' && (
             <ComponentPreview
                 code={generatedCode}
