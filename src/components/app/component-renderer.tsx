@@ -5,7 +5,7 @@ import * as React from 'react';
 
 interface ComponentRendererProps {
   code?: string;
-  framework?: 'react' | 'html' | 'tailwindcss';
+  framework?: 'html' | 'tailwindcss';
   html?: string;
 }
 
@@ -72,43 +72,7 @@ export function ComponentRenderer({ code, framework, html }: ComponentRendererPr
         box-sizing: border-box;
       }
     `;
-
-    if (framework === 'react') {
-        const cleanedCode = code
-            .replace(/^import\\s.*?;/gm, '')
-            .replace(/export\\s+default\\s+\\w+;?/m, '');
-        
-        const componentNameMatch = cleanedCode.match(/(?:export\s+)?(?:function|const)\s+([A-Z]\w*)/);
-        const componentName = componentNameMatch ? componentNameMatch[1] : 'Component';
-
-        const finalCode = cleanedCode.replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ');
-
-      return `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <script src="https://cdn.tailwindcss.com"></script>
-            <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-            <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-            <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-            <style>
-            ${baseStyles}
-            </style>
-          </head>
-          <body class="bg-background text-foreground">
-            <div id="root"></div>
-            <script type="text/babel">
-              ${finalCode}
-              const ComponentToRender = typeof ${componentName} !== 'undefined' ? ${componentName} : null;
-              if (ComponentToRender) {
-                ReactDOM.render(<ComponentToRender />, document.getElementById('root'));
-              }
-            </script>
-          </body>
-        </html>
-      `;
-    }
-
+    
     // HTML or Tailwind CSS
     return `
       <!DOCTYPE html>

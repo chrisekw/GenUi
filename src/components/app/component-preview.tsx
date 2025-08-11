@@ -127,7 +127,6 @@ export function ComponentPreview({
                  <div className="flex items-center gap-2 w-full sm:w-auto">
                      <Tabs value={framework} onValueChange={(value) => onFrameworkChange(value as Framework)}>
                     <TabsList className="w-full">
-                        <TabsTrigger value="react" className="flex-1">React</TabsTrigger>
                         <TabsTrigger value="html" className="flex-1">HTML</TabsTrigger>
                         <TabsTrigger value="tailwindcss" className="flex-1">Tailwind</TabsTrigger>
                     </TabsList>

@@ -20,8 +20,8 @@ const OptimizeComponentLayoutInputSchema = z.object({
       'A natural language prompt describing the UI component to be generated.'
     ),
   framework: z
-    .enum(['react', 'vue', 'html'])
-    .default('react')
+    .enum(['html'])
+    .default('html')
     .describe('The target framework for the UI component.'),
 });
 export type OptimizeComponentLayoutInput = z.infer<

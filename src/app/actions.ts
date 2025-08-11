@@ -21,7 +21,7 @@ export async function handleGenerateComponent(
     let layoutSuggestions = "Could not generate suggestions.";
 
     try {
-        const layoutResult = await optimizeComponentLayout({ componentPrompt: input.prompt, framework: input.framework as 'react' | 'html' });
+        const layoutResult = await optimizeComponentLayout({ componentPrompt: input.prompt, framework: input.framework as 'html' });
         layoutSuggestions = layoutResult.layoutSuggestions;
     } catch (layoutError) {
         console.error('Error in layout optimization flow:', layoutError);
@@ -61,7 +61,7 @@ export async function handleCloneUrl(
     }
 }
 
-const getIframeSrcDoc = (code: string, framework: 'react' | 'html' | 'tailwindcss') => {
+const getIframeSrcDoc = (code: string, framework: 'html' | 'tailwindcss') => {
     const baseStyles = `
       :root {
         --background: 0 0% 100%;
@@ -122,49 +122,6 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html' | 'tailwindcs
     `;
     const bodyClass = document.body.classList.contains('dark') ? 'dark' : '';
 
-
-    if (framework === 'react') {
-      const cleanedCode = code
-        .replace(/^import\\s.*?;/gm, '')
-        .replace(/export\\s+default\\s+\\w+;?/m, '');
-      
-      const componentNameMatch = cleanedCode.match(/(?:export\s+)?(?:function|const)\s+([A-Z]\w*)/);
-      const componentName = componentNameMatch ? componentNameMatch[1] : 'Component';
-
-      const finalCode = cleanedCode.replace(/export\s+(const|function)\s+(\w+)/, 'const $2 = ');
-
-      return `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <script src="https://cdn.tailwindcss.com"></script>
-            <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-            <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-            <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-            <style>
-            ${baseStyles}
-            </style>
-          </head>
-          <body class="${bodyClass}">
-            <div id="root"></div>
-            <script type="text/babel">
-              try {
-                ${finalCode}
-                const ComponentToRender = typeof ${componentName} !== 'undefined' ? ${componentName} : null;
-                if (ComponentToRender) {
-                  ReactDOM.render(<ComponentToRender />, document.getElementById('root'));
-                } else {
-                   document.getElementById('root').innerHTML = '<div style="color: red;">Error: Component not found or failed to render.</div>'
-                }
-              } catch (e) {
-                document.getElementById('root').innerHTML = '<div style="color: red;">Error: ' + e.message + '</div>'
-              }
-            </script>
-          </body>
-        </html>
-      `;
-    }
-
     // HTML or Tailwind CSS
     return `
       <!DOCTYPE html>
@@ -180,7 +137,7 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html' | 'tailwindcs
     `;
   };
 
-export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHtml'> & { framework: 'react' | 'html' | 'tailwindcss' }) {
+export async function publishComponent(item: Omit<GalleryItem, 'id' | 'previewHtml'> & { framework: 'html' | 'tailwindcss' }) {
     const db = await getDb();
     
     const currentUser = auth();

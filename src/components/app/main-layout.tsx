@@ -26,7 +26,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Sidebar } from './sidebar';
 import { CommunityGallery } from './community-gallery';
 
-export type Framework = 'react' | 'html' | 'tailwindcss';
+export type Framework = 'html' | 'tailwindcss';
 
 const samplePrompts = [
     "A sleek, futuristic dashboard UI with a dark theme. It should have a sidebar navigation with glowing icons, a main content area with several data visualization widgets (like line charts and donut charts), and a header with a search bar and user profile dropdown. Use a color palette of dark blues, purples, and electric pink for accents.",
@@ -124,7 +124,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
   }
   
   const handleClone = () => {
-    onClone(cloneUrl, 'react');
+    onClone(cloneUrl, 'html');
     setShowCloneDialog(false);
   }
 
@@ -161,7 +161,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
                     <Button size="icon" variant="ghost" onClick={enhancePromptAction} disabled={isLoading || isEnhancing} title="Enhance Prompt">
                         <Wand2 />
                     </Button>
-                    <Button size="icon" onClick={() => onGenerate(prompt, 'react', imageUrl || undefined)} disabled={isLoading || isEnhancing}>
+                    <Button size="icon" onClick={() => onGenerate(prompt, 'html', imageUrl || undefined)} disabled={isLoading || isEnhancing}>
                         <ArrowUp />
                     </Button>
                 </div>
@@ -215,7 +215,7 @@ export function MainLayout() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [framework, setFramework] = React.useState<Framework>('react');
+  const [framework, setFramework] = React.useState<Framework>('html');
   const [prompt, setPrompt] = React.useState('');
   const [generatedCode, setGeneratedCode] = React.useState('');
   const [layoutSuggestions, setLayoutSuggestions] = React.useState('');
@@ -229,7 +229,7 @@ export function MainLayout() {
     if (promptFromUrl) {
       const decodedPrompt = decodeURIComponent(promptFromUrl);
       setPrompt(decodedPrompt);
-      onGenerate(decodedPrompt, 'react');
+      onGenerate(decodedPrompt, 'html');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
