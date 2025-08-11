@@ -31,7 +31,8 @@ export async function handleGenerateComponent(
       code: componentResult.code,
       suggestions: layoutSuggestions,
     };
-  } catch (error: any) {
+  } catch (error: any)
+{
     console.error('Error in component generation flow:', error);
     throw new Error(error.message || 'Failed to generate component.');
   }
@@ -94,8 +95,8 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html') => {
         --input: 240 3.7% 15.9%;
         --ring: 240 4.9% 83.9%;
       }
-      body { 
-        background-color: transparent;
+      body {
+        background-color: hsl(var(--background));
         color: hsl(var(--foreground));
         font-family: Inter, sans-serif;
         display: flex;
@@ -129,7 +130,7 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html') => {
             ${baseStyles}
             </style>
           </head>
-          <body class="dark">
+          <body class="bg-background text-foreground">
             <div id="root"></div>
             <script type="text/babel">
               ${cleanedCode}
@@ -149,7 +150,7 @@ const getIframeSrcDoc = (code: string, framework: 'react' | 'html') => {
           <script src="https://cdn.tailwindcss.com"></script>
           <style>${baseStyles}</style>
         </head>
-        <body class="dark">
+        <body class="bg-background text-foreground">
           ${code}
         </body>
       </html>

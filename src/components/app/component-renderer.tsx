@@ -59,7 +59,7 @@ export function ComponentRenderer({ code, framework, html }: ComponentRendererPr
         --ring: 240 4.9% 83.9%;
       }
       body { 
-        background-color: transparent;
+        background-color: hsl(var(--background));
         color: hsl(var(--foreground));
         font-family: Inter, sans-serif;
         display: flex;
@@ -93,7 +93,7 @@ export function ComponentRenderer({ code, framework, html }: ComponentRendererPr
             ${baseStyles}
             </style>
           </head>
-          <body class="dark">
+          <body class="bg-background text-foreground">
             <div id="root"></div>
             <script type="text/babel">
               ${cleanedCode}
@@ -113,7 +113,7 @@ export function ComponentRenderer({ code, framework, html }: ComponentRendererPr
           <script src="https://cdn.tailwindcss.com"></script>
           <style>${baseStyles}</style>
         </head>
-        <body class="dark">
+        <body class="bg-background text-foreground">
           ${code}
         </body>
       </html>
@@ -127,7 +127,7 @@ export function ComponentRenderer({ code, framework, html }: ComponentRendererPr
         <iframe
             srcDoc={iframeSrcDoc}
             title="Component Preview"
-            sandbox="allow-same-origin"
+            sandbox="allow-scripts allow-same-origin"
             className="w-full h-full bg-transparent"
         />
     </div>
