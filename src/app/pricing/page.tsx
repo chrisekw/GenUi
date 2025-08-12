@@ -17,7 +17,8 @@ const tiers = [
             'Community support',
             'Watermarked exports',
         ],
-        cta: 'Get Started'
+        cta: 'Get Started',
+        link: '/login'
     },
     {
         name: 'Pro',
@@ -31,6 +32,7 @@ const tiers = [
         ],
         cta: 'Upgrade to Pro',
         highlighted: true,
+        link: 'https://flutterwave.com/pay/ja8l4j3t4vrs'
     },
     {
         name: 'Studio',
@@ -42,7 +44,8 @@ const tiers = [
             'Saved component library',
             'Advanced design customization',
         ],
-        cta: 'Choose Studio'
+        cta: 'Choose Studio',
+        link: 'https://flutterwave.com/pay/szpg37lzuyf0'
     },
     {
         name: 'Enterprise',
@@ -52,7 +55,8 @@ const tiers = [
             'Unlimited generations',
             'Everything in Studio',
         ],
-        cta: 'Contact Sales'
+        cta: 'Contact Sales',
+        link: 'https://flutterwave.com/pay/jlxrbpjfsmfk'
     }
 ];
 
@@ -89,7 +93,7 @@ export default function PricingPage() {
                 </CardContent>
                 <CardFooter>
                   <Button asChild className="w-full" variant={tier.highlighted ? 'default' : 'outline'}>
-                    <Link href="/login">{tier.cta}</Link>
+                    <Link href={tier.link}>{tier.cta}</Link>
                   </Button>
                 </CardFooter>
               </Card>
