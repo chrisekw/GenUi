@@ -1,21 +1,27 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only read and write to their own user document.
+
+    // Users can only read and write to their own document.
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
 
-      // Users can manage their own likes subcollection.
-      match /likes/{likeId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Users can manage their own likes subcollection
+      match /likes/{componentId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
       }
     }
 
-    // Any authenticated user can read community components.
-    // Only users on a non-free plan can create, update, or delete components.
+    // Community components can be read by anyone, but only created
+    // by logged-in users. Updates are restricted to likes/copies for now.
     match /community_components/{componentId} {
-      allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.planId != 'free';
+      allow read;
+      allow create: if request.auth != null;
+      // Allow updates only for incrementing likes and copies.
+      allow update: if request.auth != null &&
+                    request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(['likes', 'copies']);
     }
   }
 }
