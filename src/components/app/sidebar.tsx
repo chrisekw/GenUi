@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Users, Settings, LogOut, VenetianMask, User, Heart } from 'lucide-react';
+import { Home, Users, Settings, LogOut, VenetianMask, User, Heart, DollarSign } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Logo } from '../icons/logo';
@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 const navItems = [
     { href: '/', icon: Home, label: 'Home' },
     { href: '/community', icon: Users, label: 'Community' },
+    { href: '/pricing', icon: DollarSign, label: 'Pricing' },
 ];
 
 export function Sidebar() {

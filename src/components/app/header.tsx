@@ -10,7 +10,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
-import { Menu, Home, Users, Settings, LogOut, VenetianMask, User, Heart } from 'lucide-react';
+import { Menu, Home, Users, Settings, LogOut, VenetianMask, User, Heart, DollarSign } from 'lucide-react';
 import { Logo } from '../icons/logo';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
     { href: '/', icon: Home, label: 'Home' },
     { href: '/community', icon: Users, label: 'Community' },
+    { href: '/pricing', icon: DollarSign, label: 'Pricing' },
 ];
 
 export function Header() {
