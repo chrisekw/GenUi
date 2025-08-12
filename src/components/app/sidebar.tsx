@@ -62,7 +62,7 @@ export function Sidebar() {
             </nav>
         </div>
         <div className="mt-auto p-4 border-t">
-            <div className="grid gap-4 pt-4">
+            <div className="grid gap-4">
                 <Link
                     href="/settings"
                     className={cn('flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary', pathname.startsWith('/settings') && 'bg-muted text-primary')}
