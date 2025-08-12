@@ -14,7 +14,7 @@ import {
 import { auth, db } from '@/lib/firebase';
 import { usePathname, useRouter } from 'next/navigation';
 import { doc, setDoc, getDoc, DocumentData } from 'firebase/firestore';
-import { UserProfile, UserUsage } from '@/lib/user-profile';
+import { UserProfile } from '@/lib/user-profile';
 
 
 interface AuthContextType {
@@ -48,11 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           uid: firebaseUser.uid,
           email: firebaseUser.email!,
           planId: 'free',
-          quota: {
-            generationsUsed: 0,
-            generationsLimit: 20,
-            lastReset: new Date(),
-          },
        };
        await setDoc(userRef, newProfile);
        setUserProfile(newProfile);
@@ -102,11 +97,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       uid: user.uid,
       email: user.email!,
       planId: 'free',
-      quota: {
-        generationsUsed: 0,
-        generationsLimit: 20,
-        lastReset: new Date(),
-      },
     };
     await setDoc(userRef, newProfile);
     setUserProfile(newProfile);

@@ -10,7 +10,6 @@ import { Button } from '../ui/button';
 import { useAuth } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { UserUsage } from './user-usage';
 
 const navItems = [
     { href: '/', icon: Home, label: 'Home' },
@@ -63,7 +62,6 @@ export function Sidebar() {
             </nav>
         </div>
         <div className="mt-auto p-4 border-t">
-            {user && <UserUsage />}
             <div className="grid gap-4 pt-4">
                 <Link
                     href="/settings"

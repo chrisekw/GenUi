@@ -168,7 +168,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center gap-2">
             {suggestionButtons.map((item, index) => (
-                <Button key={index} variant="outline" className="rounded-lg h-auto" onClick={() => handleSuggestionClick(item)}>
+                <Button key={index} variant="outline" className="rounded-lg" onClick={() => handleSuggestionClick(item)}>
                   <item.icon className="h-4 w-4" />
                   <span>{item.text}</span>
                 </Button>
@@ -374,5 +374,3 @@ export function MainLayout() {
     </div>
   );
 }
-
-    

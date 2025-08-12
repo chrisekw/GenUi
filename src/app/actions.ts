@@ -11,52 +11,16 @@ import type { GalleryItem } from '@/lib/gallery-items';
 import { UserProfile } from '@/lib/user-profile';
 import { revalidatePath } from 'next/cache';
 import { collection, query, orderBy, limit, getDocs, DocumentData, doc, getDoc, increment, writeBatch, where, runTransaction } from 'firebase/firestore';
-import { getDb } from '@/lib/firebase-admin';
-
-
-async function checkAndDecrementQuota(userId: string): Promise<boolean> {
-    const adminDb = await getDb();
-    const userRef = adminDb.collection('users').doc(userId);
-
-    try {
-        await adminDb.runTransaction(async (transaction) => {
-            const userDoc = await transaction.get(userRef);
-            if (!userDoc.exists) {
-                throw new Error("User document not found.");
-            }
-
-            const userProfile = userDoc.data() as UserProfile;
-            const { quota } = userProfile;
-            
-            if (quota.generationsUsed >= quota.generationsLimit) {
-                throw new Error("You have exceeded your generation quota.");
-            }
-            
-            transaction.update(userRef, { 'quota.generationsUsed': admin.firestore.FieldValue.increment(1) });
-        });
-        return true;
-    } catch (error: any) {
-        console.error("Quota check/decrement failed:", error);
-        // Re-throw the specific error message to be displayed to the user
-        if (error.message.includes("exceeded")) {
-            throw error;
-        }
-        // Throw a generic permission error for other cases
-        throw new Error("Failed to update quota due to a server error.");
-    }
-}
 
 
 export async function handleGenerateComponent(
   input: GenerateUiComponentInput,
   userId: string
 ) {
+  if (!userId) {
+    throw new Error("You must be logged in to generate components.");
+  }
   try {
-    const canGenerate = await checkAndDecrementQuota(userId);
-    if (!canGenerate) {
-        // This case might not be hit if checkAndDecrementQuota always throws, but it's good practice.
-        throw new Error("You have exceeded your generation quota.");
-    }
     const componentResult = await generateUiComponent(input);
     let layoutSuggestions = "Could not generate suggestions.";
 
@@ -105,11 +69,10 @@ export async function handleCloneUrl(
     input: CloneUrlInput,
     userId: string
 ) {
+    if (!userId) {
+        throw new Error("You must be logged in to clone components.");
+    }
     try {
-        const canGenerate = await checkAndDecrementQuota(userId);
-        if (!canGenerate) {
-            throw new Error("You have exceeded your generation quota.");
-        }
         const result = await cloneUrl(input);
         return result;
     } catch (error: any) {
@@ -227,39 +190,54 @@ export async function handleLikeComponent(componentId: string, userId: string): 
     const likeRef = doc(db, `users/${userId}/likes`, componentId);
 
     try {
-        const batch = writeBatch(db);
-        const likeDoc = await getDoc(likeRef);
+        const newLikes = await runTransaction(db, async (transaction) => {
+            const likeDoc = await transaction.get(likeRef);
+            const componentDoc = await transaction.get(componentRef);
 
-        if (likeDoc.exists()) {
-            // User has already liked, so we unlike
-            batch.update(componentRef, { likes: increment(-1) });
-            batch.delete(likeRef);
-        } else {
-            // User has not liked, so we like
-            batch.update(componentRef, { likes: increment(1) });
-            batch.set(likeRef, { createdAt: new Date() });
-        }
+            if (!componentDoc.exists()) {
+                throw "Component does not exist.";
+            }
 
-        await batch.commit();
+            const currentLikes = componentDoc.data().likes || 0;
+            let newLikesCount;
+
+            if (likeDoc.exists()) {
+                // User has already liked, so we unlike
+                transaction.delete(likeRef);
+                newLikesCount = currentLikes - 1;
+            } else {
+                // User has not liked, so we like
+                transaction.set(likeRef, { createdAt: new Date() });
+                newLikesCount = currentLikes + 1;
+            }
+            
+            transaction.update(componentRef, { likes: newLikesCount });
+            return newLikesCount;
+        });
         
-        // Fetch the updated document to return the new like count
-        const updatedDoc = await getDoc(componentRef);
-        const newLikes = updatedDoc.data()?.likes || 0;
-
         revalidatePath('/community');
         revalidatePath('/my-components');
         revalidatePath(`/component/${componentId}`);
         return { success: true, likes: newLikes };
+
     } catch(e) {
         console.error("Error liking component:", e);
         return { success: false };
     }
 }
 
+
 export async function handleCopyComponent(componentId: string) {
      const componentRef = doc(db, 'community_components', componentId);
      try {
-        await writeBatch(db).update(componentRef, { copies: increment(1) }).commit();
+        await runTransaction(db, async (transaction) => {
+            const componentDoc = await transaction.get(componentRef);
+            if (!componentDoc.exists()) {
+                throw "Component does not exist.";
+            }
+            const newCopies = (componentDoc.data().copies || 0) + 1;
+            transaction.update(componentRef, { copies: newCopies });
+        });
         revalidatePath('/community');
         revalidatePath('/my-components');
         revalidatePath(`/component/${componentId}`);
