@@ -8,8 +8,7 @@ import type { GalleryItem } from '@/lib/gallery-items';
 import { Header } from '@/components/app/header';
 import { Sidebar } from '@/components/app/sidebar';
 import { Button } from '@/components/ui/button';
-import { Heart, Copy, Eye } from 'lucide-react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Heart, Copy, GitFork } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ComponentRenderer } from '@/components/app/component-renderer';
@@ -22,6 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
 export default function MyComponentsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -61,15 +61,16 @@ export default function MyComponentsPage() {
     }
     startTransition(async () => {
         // Optimistic update
-        setLikedComponents(prev => ({...prev, [componentId]: !prev[componentId]}));
-        setComponents(prev => prev.map(c => c.id === componentId ? {...c, likes: (c.likes || 0) + (likedComponents[componentId] ? -1 : 1)} : c));
+        const isCurrentlyLiked = likedComponents[componentId];
+        setLikedComponents(prev => ({...prev, [componentId]: !isCurrentlyLiked}));
+        setComponents(prev => prev.map(c => c.id === componentId ? {...c, likes: (c.likes || 0) + (isCurrentlyLiked ? -1 : 1)} : c));
 
         const result = await handleLikeComponent(componentId, user.uid);
         if (!result.success) {
             toast({ title: 'Failed to update like', variant: 'destructive' });
             // Revert optimistic update on failure
-            setLikedComponents(prev => ({...prev, [componentId]: !prev[componentId]}));
-             setComponents(prev => prev.map(c => c.id === componentId ? {...c, likes: (c.likes || 0) - (likedComponents[componentId] ? -1 : 1)} : c));
+            setLikedComponents(prev => ({...prev, [componentId]: isCurrentlyLiked}));
+            setComponents(prev => prev.map(c => c.id === componentId ? {...c, likes: (c.likes || 0) - (isCurrentlyLiked ? -1 : 1)} : c));
         }
     });
   }
@@ -79,6 +80,8 @@ export default function MyComponentsPage() {
     toast({ title: 'Code copied to clipboard!' });
     startTransition(() => {
         handleCopyComponent(componentId);
+         // Optimistic update for copy count
+        setComponents(prev => prev.map(c => c.id === componentId ? {...c, copies: (c.copies || 0) + 1} : c));
     });
   }
 
@@ -120,33 +123,29 @@ export default function MyComponentsPage() {
     return (
        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full max-w-7xl mx-auto">
         {components.map((item, index) => (
-          <div 
-            key={item.id} 
-            className="group relative rounded-xl border border-border/20 bg-card/60 text-card-foreground shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:border-border/50 overflow-hidden hover:-translate-y-1 animate-fade-in-up"
+           <Card 
+            key={item.id}
+            className="group relative flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in-up"
             style={{ animationDelay: `${index * 100}ms`}}
           >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"/>
-              <div className="p-1">
-                  <div className="relative aspect-video rounded-lg overflow-hidden border border-border/10 shadow-inner">
-                      <ComponentRenderer html={item.previewHtml} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"/>
-                      <div className="absolute bottom-2 left-3 flex items-center gap-2">
-                          <Avatar className="h-6 w-6 border-2 border-background/50">
-                              <AvatarImage src={item.authorImage} />
-                              <AvatarFallback>{item.authorName?.[0]}</AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs font-medium text-white/90 drop-shadow-sm">{item.authorName || 'Anonymous'}</span>
+              <CardContent className="p-0 aspect-video flex-grow">
+                <Link href={`/component/${item.id}`} className="block w-full h-full">
+                  <ComponentRenderer html={item.previewHtml} />
+                </Link>
+              </CardContent>
+              <CardFooter className="flex items-center justify-between p-4 bg-card border-t">
+                  <div className='flex-grow'>
+                    <p className="font-semibold truncate text-sm">{item.name}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-3 w-3"/>
+                        <span>{item.likes || 0}</span>
                       </div>
-                  </div>
-              </div>
-              <div className="p-4 pt-2">
-                  <h3 className="font-semibold text-foreground truncate">{item.name}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2 h-10">{item.description || 'No description provided.'}</p>
-              </div>
-              <div className="px-4 pb-4 flex justify-between items-center">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Heart className="h-3.5 w-3.5"/>
-                    <span>{item.likes || 0}</span>
+                      <div className="flex items-center gap-1">
+                        <GitFork className="h-3 w-3"/>
+                        <span>{item.copies || 0}</span>
+                      </div>
+                    </div>
                   </div>
                   <div className="flex items-center gap-1">
                       <Tooltip>
@@ -165,17 +164,9 @@ export default function MyComponentsPage() {
                         </TooltipTrigger>
                         <TooltipContent><p>Copy Code</p></TooltipContent>
                       </Tooltip>
-                        <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-                                <Link href={`/component/${item.id}`}><Eye className="h-4 w-4" /></Link>
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>View Details</p></TooltipContent>
-                      </Tooltip>
                   </div>
-              </div>
-          </div>
+              </CardFooter>
+          </Card>
         ))}
       </div>
     )
