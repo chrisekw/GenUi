@@ -1,13 +1,31 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow anyone to read community components
+    // Community components can be read by anyone.
     match /community_components/{componentId} {
       allow read: if true;
-      // Allow authenticated users to create new components
+      
+      // Any authenticated user can create a new component.
       allow create: if request.auth != null;
-      // Allow users to update or delete only their own components
-      allow update, delete: if request.auth.uid == resource.data.authorId;
+
+      // Only the original author can update the core fields of a component.
+      // However, any authenticated user should be able to update the 'likes' and 'copies' count.
+      allow update: if request.auth != null && (
+        // Case 1: The user is the author, they can change anything.
+        request.auth.uid == resource.data.authorId ||
+        // Case 2: An authenticated user is updating only the 'likes' or 'copies' fields.
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'copies'])
+      );
+
+      // Only the original author can delete their component.
+      allow delete: if request.auth.uid == resource.data.authorId;
+    }
+    
+    // User-specific data, like their list of liked components.
+    match /users/{userId}/{document=**} {
+        // Users can only read and write to their own documents.
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
