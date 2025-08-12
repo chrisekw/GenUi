@@ -22,6 +22,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function MyComponentsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -40,6 +42,18 @@ export default function MyComponentsPage() {
         try {
           const userComps = await getUserComponents(user.uid);
           setComponents(userComps);
+
+          // Check which components the user has liked
+          const liked: Record<string, boolean> = {};
+          for (const comp of userComps) {
+              const likeRef = doc(db, `users/${user.uid}/likes`, comp.id);
+              const likeDoc = await getDoc(likeRef);
+              if (likeDoc.exists()) {
+                  liked[comp.id] = true;
+              }
+          }
+          setLikedComponents(liked);
+
         } catch (error) {
           console.error("Error fetching user components:", error);
           toast({ title: 'Failed to load your components', variant: 'destructive'});
@@ -59,18 +73,31 @@ export default function MyComponentsPage() {
         toast({ title: 'Please log in to like components', variant: 'destructive'});
         return;
     }
-    startTransition(async () => {
-        // Optimistic update
-        const isCurrentlyLiked = likedComponents[componentId];
-        setLikedComponents(prev => ({...prev, [componentId]: !isCurrentlyLiked}));
-        setComponents(prev => prev.map(c => c.id === componentId ? {...c, likes: (c.likes || 0) + (isCurrentlyLiked ? -1 : 1)} : c));
+    const isCurrentlyLiked = !!likedComponents[componentId];
 
+    // Optimistic update
+    startTransition(() => {
+        setLikedComponents(prev => ({...prev, [componentId]: !isCurrentlyLiked}));
+        setComponents(prev => prev.map(c => 
+            c.id === componentId 
+            ? {...c, likes: (c.likes || 0) + (isCurrentlyLiked ? -1 : 1)} 
+            : c
+        ));
+    });
+
+    startTransition(async () => {
         const result = await handleLikeComponent(componentId, user.uid);
         if (!result.success) {
             toast({ title: 'Failed to update like', variant: 'destructive' });
             // Revert optimistic update on failure
-            setLikedComponents(prev => ({...prev, [componentId]: isCurrentlyLiked}));
-            setComponents(prev => prev.map(c => c.id === componentId ? {...c, likes: (c.likes || 0) - (isCurrentlyLiked ? -1 : 1)} : c));
+            startTransition(() => {
+                setLikedComponents(prev => ({...prev, [componentId]: isCurrentlyLiked}));
+                 setComponents(prev => prev.map(c => 
+                    c.id === componentId 
+                    ? {...c, likes: (c.likes || 0) - (isCurrentlyLiked ? -1 : 1)} 
+                    : c
+                ));
+            });
         }
     });
   }
@@ -78,10 +105,18 @@ export default function MyComponentsPage() {
   const onCopyClick = (code: string, componentId: string) => {
     navigator.clipboard.writeText(code);
     toast({ title: 'Code copied to clipboard!' });
+    
+    // Optimistic update for copy count
+    startTransition(() => {
+        setComponents(prev => prev.map(c => 
+            c.id === componentId 
+            ? {...c, copies: (c.copies || 0) + 1} 
+            : c
+        ));
+    });
+
     startTransition(() => {
         handleCopyComponent(componentId);
-         // Optimistic update for copy count
-        setComponents(prev => prev.map(c => c.id === componentId ? {...c, copies: (c.copies || 0) + 1} : c));
     });
   }
 
@@ -134,7 +169,7 @@ export default function MyComponentsPage() {
                 </Link>
               </CardContent>
               <CardFooter className="flex items-center justify-between p-4 bg-card border-t">
-                  <div className='flex-grow'>
+                  <div className='flex-grow overflow-hidden'>
                     <p className="font-semibold truncate text-sm">{item.name}</p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">

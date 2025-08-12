@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, onSnapshot, orderBy, query, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { Header } from '@/components/app/header';
 import { Sidebar } from '@/components/app/sidebar';
 import { Button } from '@/components/ui/button';
@@ -35,48 +35,87 @@ export default function CommunityFeedPage() {
   // State to track liked components for instant feedback
   const [likedComponents, setLikedComponents] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    const q = query(
-      collection(db, 'community_components'),
-      orderBy('createdAt', 'desc')
-    );
+   useEffect(() => {
+    if (user) {
+      const checkLikes = async (comps: GalleryItem[]) => {
+        const liked: Record<string, boolean> = {};
+        for (const comp of comps) {
+          const likeRef = doc(db, `users/${user.uid}/likes`, comp.id);
+          const likeDoc = await getDoc(likeRef);
+          if (likeDoc.exists()) {
+            liked[comp.id] = true;
+          }
+        }
+        setLikedComponents(liked);
+      };
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const comps = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date()
-        } as GalleryItem;
-      });
-      setComponents(comps);
-      setLoading(false);
-    }, (error) => {
-        console.error("Error fetching community components:", error);
+      const q = query(
+        collection(db, 'community_components'),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const comps = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+              id: doc.id,
+              ...data,
+              createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date()
+          } as GalleryItem;
+        });
+        setComponents(comps);
+        checkLikes(comps);
         setLoading(false);
-    });
+      }, (error) => {
+          console.error("Error fetching community components:", error);
+          setLoading(false);
+      });
 
-    return () => unsubscribe();
-  }, []);
+      return () => unsubscribe();
+
+    } else {
+        // Fetch components without checking likes if user is not logged in
+        const q = query(collection(db, 'community_components'), orderBy('createdAt', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const comps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GalleryItem));
+            setComponents(comps);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }
+  }, [user]);
 
   const onLikeClick = (componentId: string) => {
     if (!user) {
         toast({ title: 'Please log in to like components', variant: 'destructive'});
         return;
     }
-    startTransition(async () => {
-        // Optimistic update
-        const isCurrentlyLiked = likedComponents[componentId];
-        setLikedComponents(prev => ({...prev, [componentId]: !isCurrentlyLiked}));
-        setComponents(prev => prev.map(c => c.id === componentId ? {...c, likes: (c.likes || 0) + (isCurrentlyLiked ? -1 : 1)} : c));
 
+    const isCurrentlyLiked = !!likedComponents[componentId];
+    
+    // Optimistic update
+    startTransition(() => {
+        setLikedComponents(prev => ({...prev, [componentId]: !isCurrentlyLiked}));
+        setComponents(prev => prev.map(c => 
+            c.id === componentId 
+            ? {...c, likes: (c.likes || 0) + (isCurrentlyLiked ? -1 : 1)} 
+            : c
+        ));
+    });
+
+    startTransition(async () => {
         const result = await handleLikeComponent(componentId, user.uid);
         if (!result.success) {
             toast({ title: 'Failed to update like', variant: 'destructive' });
             // Revert optimistic update on failure
-            setLikedComponents(prev => ({...prev, [componentId]: isCurrentlyLiked}));
-            setComponents(prev => prev.map(c => c.id === componentId ? {...c, likes: (c.likes || 0) - (isCurrentlyLiked ? -1 : 1)} : c));
+            startTransition(() => {
+                setLikedComponents(prev => ({...prev, [componentId]: isCurrentlyLiked}));
+                setComponents(prev => prev.map(c => 
+                    c.id === componentId 
+                    ? {...c, likes: (c.likes || 0) - (isCurrentlyLiked ? -1 : 1)} 
+                    : c
+                ));
+            });
         }
     });
   }
@@ -84,10 +123,18 @@ export default function CommunityFeedPage() {
   const onCopyClick = (code: string, componentId: string) => {
     navigator.clipboard.writeText(code);
     toast({ title: 'Code copied to clipboard!' });
+    
+    // Optimistic update for copy count
+    startTransition(() => {
+        setComponents(prev => prev.map(c => 
+            c.id === componentId 
+            ? {...c, copies: (c.copies || 0) + 1} 
+            : c
+        ));
+    });
+
     startTransition(() => {
         handleCopyComponent(componentId);
-        // Optimistic update for copy count
-        setComponents(prev => prev.map(c => c.id === componentId ? {...c, copies: (c.copies || 0) + 1} : c));
     });
   }
 
@@ -133,7 +180,7 @@ export default function CommunityFeedPage() {
                         </Link>
                       </CardContent>
                       <CardFooter className="flex items-center justify-between p-4 bg-card border-t">
-                          <div className='flex-grow'>
+                          <div className='flex-grow overflow-hidden'>
                             <p className="font-semibold truncate text-sm">{item.name}</p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <div className="flex items-center gap-1">
