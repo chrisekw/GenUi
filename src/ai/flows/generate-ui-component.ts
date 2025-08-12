@@ -223,6 +223,7 @@ RULES
 DO:
 - Generate complete, clean, and valid UI code only.
 - If the user asks for 'tailwindcss', provide only the HTML structure with Tailwind CSS classes. Do not wrap it in a React component.
+- If an image is required, use a placeholder image from https://placehold.co. For example: <img src="https://placehold.co/600x400" alt="Placeholder">. Use appropriate dimensions. Also add a 'data-ai-hint' attribute with one or two keywords for what the image should be, for example <img src="https://placehold.co/300x200" data-ai-hint="mountain landscape" ... />
 - Include semantic HTML (<section>, <nav>, <main>, <form>, etc.) where appropriate.
 - Ensure accessibility (e.g., aria-*, proper labels, focus management).
 - Use Tailwind CSS by default unless the user specifies another styling system.
