@@ -11,33 +11,38 @@ import type { GalleryItem } from '@/lib/gallery-items';
 import { UserProfile } from '@/lib/user-profile';
 import { revalidatePath } from 'next/cache';
 import { collection, query, orderBy, limit, getDocs, DocumentData, doc, getDoc, increment, writeBatch, where, runTransaction } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase-admin';
 
 
 async function checkAndDecrementQuota(userId: string): Promise<boolean> {
-    const userRef = doc(db, 'users', userId);
+    const adminDb = await getDb();
+    const userRef = adminDb.collection('users').doc(userId);
 
     try {
-        await runTransaction(db, async (transaction) => {
+        await adminDb.runTransaction(async (transaction) => {
             const userDoc = await transaction.get(userRef);
-            if (!userDoc.exists()) {
+            if (!userDoc.exists) {
                 throw new Error("User document not found.");
             }
 
             const userProfile = userDoc.data() as UserProfile;
             const { quota } = userProfile;
             
-            // For now, we assume monthly quota that doesn't reset automatically in this example
-            // A real app would use a cron job or check the date.
             if (quota.generationsUsed >= quota.generationsLimit) {
                 throw new Error("You have exceeded your generation quota.");
             }
-
-            transaction.update(userRef, { 'quota.generationsUsed': increment(1) });
+            
+            transaction.update(userRef, { 'quota.generationsUsed': admin.firestore.FieldValue.increment(1) });
         });
         return true;
     } catch (error: any) {
         console.error("Quota check/decrement failed:", error);
-        throw error; // Re-throw the error to be caught by the calling function
+        // Re-throw the specific error message to be displayed to the user
+        if (error.message.includes("exceeded")) {
+            throw error;
+        }
+        // Throw a generic permission error for other cases
+        throw new Error("Failed to update quota due to a server error.");
     }
 }
 
