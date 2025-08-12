@@ -8,9 +8,9 @@ import { enhancePrompt } from '@/ai/flows/enhance-prompt-flow';
 import { replaceImagePlaceholders } from '@/ai/flows/replace-image-placeholders-flow';
 import { db } from '@/lib/firebase';
 import type { GalleryItem } from '@/lib/gallery-items';
-import { UserProfile } from '@/lib/user-profile';
+import type { PlanId, UserProfile } from '@/lib/user-profile';
 import { revalidatePath } from 'next/cache';
-import { collection, query, orderBy, limit, getDocs, DocumentData, doc, getDoc, increment, writeBatch, where, runTransaction } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs, DocumentData, doc, getDoc, writeBatch, where, runTransaction, updateDoc } from 'firebase/firestore';
 
 
 export async function handleGenerateComponent(
@@ -204,7 +204,7 @@ export async function handleLikeComponent(componentId: string, userId: string): 
             if (likeDoc.exists()) {
                 // User has already liked, so we unlike
                 transaction.delete(likeRef);
-                newLikesCount = currentLikes - 1;
+                newLikesCount = Math.max(0, currentLikes - 1);
             } else {
                 // User has not liked, so we like
                 transaction.set(likeRef, { createdAt: new Date() });
@@ -244,4 +244,61 @@ export async function handleCopyComponent(componentId: string) {
      } catch(e) {
         console.error("Error tracking copy:", e);
      }
+}
+
+interface VerifyPaymentInput {
+    transactionId: string;
+    userId: string;
+    planId: PlanId;
+}
+
+export async function verifyPayment(input: VerifyPaymentInput): Promise<{ success: boolean; message: string }> {
+    const { transactionId, userId, planId } = input;
+
+    if (!userId || !planId || !transactionId) {
+        return { success: false, message: 'Missing required payment information.' };
+    }
+    
+    // IMPORTANT: Replace with your Flutterwave Secret Key from your environment variables
+    const FLUTTERWAVE_SECRET_KEY = process.env.FLUTTERWAVE_SECRET_KEY;
+    
+    if (!FLUTTERWAVE_SECRET_KEY) {
+        console.error("Flutterwave secret key is not set.");
+        return { success: false, message: 'Server configuration error.' };
+    }
+
+    try {
+        // This is the server-to-server call to Flutterwave to verify the transaction
+        const verificationUrl = `https://api.flutterwave.com/v3/transactions/${transactionId}/verify`;
+        const response = await fetch(verificationUrl, {
+            headers: {
+                Authorization: `Bearer ${FLUTTERWAVE_SECRET_KEY}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Flutterwave API returned status ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        // Check if the payment was successful and other details match
+        if (result.status === 'success' && result.data?.status === 'successful') {
+            // Payment is verified, now update the user's account in Firestore
+            const userRef = doc(db, 'users', userId);
+            
+            await updateDoc(userRef, {
+                planId: planId,
+            });
+
+            revalidatePath('/settings/profile'); // Revalidate user-specific pages
+            return { success: true, message: 'Your plan has been successfully upgraded!' };
+        } else {
+            return { success: false, message: 'Payment verification failed. Please contact support.' };
+        }
+
+    } catch(e: any) {
+        console.error("Payment verification failed:", e);
+        return { success: false, message: `An error occurred during verification: ${e.message}` };
+    }
 }

@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
        const newProfile: UserProfile = {
           uid: firebaseUser.uid,
           email: firebaseUser.email!,
-          planId: 'free',
+          planId: 'Free',
        };
        await setDoc(userRef, newProfile);
        setUserProfile(newProfile);
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const newProfile: UserProfile = {
       uid: user.uid,
       email: user.email!,
-      planId: 'free',
+      planId: 'Free',
     };
     await setDoc(userRef, newProfile);
     setUserProfile(newProfile);

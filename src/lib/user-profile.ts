@@ -1,5 +1,6 @@
 
-export type PlanId = 'free' | 'pro' | 'studio' | 'enterprise';
+
+export type PlanId = 'Free' | 'Pro' | 'Studio' | 'Enterprise';
 
 export interface UserProfile {
     uid: string;

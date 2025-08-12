@@ -1,21 +1,37 @@
 
+'use client';
+
+import * as React from 'react';
 import { Header } from '@/components/app/header';
 import { Sidebar } from '@/components/app/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import type { PlanId } from '@/lib/user-profile';
 
-const tiers = [
+interface Tier {
+    name: PlanId;
+    price: string;
+    description: string;
+    features: string[];
+    cta: string;
+    link: string;
+    highlighted?: boolean;
+}
+
+const tiers: Tier[] = [
     {
         name: 'Free',
         price: '$0',
         description: 'For trying things out',
         features: [
-            '20 generations per month (max 5/day)',
+            'Unlimited generations',
             'Access to standard UI components',
             'Community support',
-            'Watermarked exports',
+            'Publish to community',
         ],
         cta: 'Get Started',
         link: '/login'
@@ -25,10 +41,9 @@ const tiers = [
         price: '$10',
         description: 'For indie devs & hobbyists',
         features: [
-            '50 generations per month',
             'Everything in Free',
             'Priority processing',
-            'No watermark on exports',
+            'Advanced design customization',
         ],
         cta: 'Upgrade to Pro',
         highlighted: true,
@@ -39,10 +54,9 @@ const tiers = [
         price: '$35',
         description: 'For startups & small teams',
         features: [
-            '100 generations per month',
             'Everything in Pro',
             'Saved component library',
-            'Advanced design customization',
+            'Access to exclusive components',
         ],
         cta: 'Choose Studio',
         link: 'https://flutterwave.com/pay/szpg37lzuyf0'
@@ -52,8 +66,9 @@ const tiers = [
         price: '$155',
         description: 'For big teams & agencies',
         features: [
-            'Unlimited generations',
             'Everything in Studio',
+            'Dedicated support',
+            'Team collaboration features',
         ],
         cta: 'Contact Sales',
         link: 'https://flutterwave.com/pay/jlxrbpjfsmfk'
@@ -61,6 +76,46 @@ const tiers = [
 ];
 
 export default function PricingPage() {
+    const { user } = useAuth();
+    const { toast } = useToast();
+
+    const getPaymentLink = (tier: Tier) => {
+        if (tier.name === 'Free') {
+            return tier.link;
+        }
+
+        if (!user) {
+            // If user is not logged in, clicking the button will show a toast.
+            return '#';
+        }
+        
+        // Construct the redirect URL which Flutterwave will use to send the user back to our app
+        const redirectUrl = `${window.location.origin}/payment/status`;
+
+        const paymentLink = new URL(tier.link);
+        
+        // Pass user and transaction info to Flutterwave
+        paymentLink.searchParams.set('email', user.email || '');
+        paymentLink.searchParams.set('name', user.displayName || '');
+        // We combine userId and planId into tx_ref because it's a common field for internal references.
+        paymentLink.searchParams.set('tx_ref', `${user.uid}_${tier.name}`);
+        paymentLink.searchParams.set('redirect_url', redirectUrl);
+
+        return paymentLink.toString();
+    }
+
+    const handleCtaClick = (e: React.MouseEvent<HTMLAnchorElement>, tier: Tier) => {
+        if (tier.name !== 'Free' && !user) {
+            e.preventDefault();
+            toast({
+                title: "Please log in to upgrade",
+                description: "You need to be logged in to choose a paid plan.",
+                variant: "destructive"
+            });
+        }
+    }
+
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <Sidebar />
@@ -93,7 +148,7 @@ export default function PricingPage() {
                 </CardContent>
                 <CardFooter>
                   <Button asChild className="w-full" variant={tier.highlighted ? 'default' : 'outline'}>
-                    <Link href={tier.link}>{tier.cta}</Link>
+                    <Link href={getPaymentLink(tier)} onClick={(e) => handleCtaClick(e, tier)}>{tier.cta}</Link>
                   </Button>
                 </CardFooter>
               </Card>
