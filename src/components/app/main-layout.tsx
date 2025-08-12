@@ -168,7 +168,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center gap-2">
             {suggestionButtons.map((item, index) => (
-                <Button key={index} variant="outline" className="rounded-lg flex flex-col items-center justify-center h-24 text-center p-2" onClick={() => handleSuggestionClick(item)}>
+                <Button key={index} variant="outline" className="rounded-lg flex flex-col items-center justify-center h-20 text-center p-2" onClick={() => handleSuggestionClick(item)}>
                   <item.icon className="h-6 w-6 mb-2 flex-shrink-0" />
                   <span className="text-xs leading-tight">{item.text}</span>
                 </Button>
@@ -264,12 +264,11 @@ export function MainLayout() {
       if (currentImageUrl) {
         setImageUrl(currentImageUrl);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       toast({
         title: 'Error generating component',
-        description:
-          'There was an error generating the component. Please try again.',
+        description: error.message || 'There was an error generating the component. Please try again.',
         variant: 'destructive',
       });
       setGeneratedCode('');
@@ -306,11 +305,11 @@ export function MainLayout() {
       setFramework(currentFramework);
       setPrompt(`A component cloned from ${url}`);
       setImageUrl(null);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         toast({
             title: 'Error cloning URL',
-            description: 'There was an error cloning the URL. Please try again.',
+            description: error.message || 'There was an error cloning the URL. Please try again.',
             variant: 'destructive',
         });
         setGeneratedCode('');
