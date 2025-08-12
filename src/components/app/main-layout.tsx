@@ -211,7 +211,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
 }
 
 export function MainLayout() {
-  const { user } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -256,7 +256,7 @@ export function MainLayout() {
     }
     
     try {
-      const result = await handleGenerateComponent({ prompt: currentPrompt, framework: currentFramework, imageUrl: currentImageUrl });
+      const result = await handleGenerateComponent({ prompt: currentPrompt, framework: currentFramework, imageUrl: currentImageUrl }, user.uid);
       setGeneratedCode(result.code);
       setLayoutSuggestions(result.suggestions);
       setFramework(currentFramework);
@@ -264,6 +264,7 @@ export function MainLayout() {
       if (currentImageUrl) {
         setImageUrl(currentImageUrl);
       }
+      await refreshUserProfile();
     } catch (error: any) {
       console.error(error);
       toast({
@@ -299,12 +300,13 @@ export function MainLayout() {
     }
 
     try {
-      const result = await handleCloneUrl({ url, framework: currentFramework });
+      const result = await handleCloneUrl({ url, framework: currentFramework }, user.uid);
       setGeneratedCode(result.code);
       setLayoutSuggestions(''); // No suggestions for cloned components for now
       setFramework(currentFramework);
       setPrompt(`A component cloned from ${url}`);
       setImageUrl(null);
+      await refreshUserProfile();
     } catch (error: any) {
         console.error(error);
         toast({

@@ -8,14 +8,50 @@ import { enhancePrompt } from '@/ai/flows/enhance-prompt-flow';
 import { replaceImagePlaceholders } from '@/ai/flows/replace-image-placeholders-flow';
 import { db } from '@/lib/firebase';
 import type { GalleryItem } from '@/lib/gallery-items';
+import { UserProfile } from '@/lib/user-profile';
 import { revalidatePath } from 'next/cache';
-import { collection, query, orderBy, limit, getDocs, DocumentData, doc, getDoc, increment, writeBatch, where } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs, DocumentData, doc, getDoc, increment, writeBatch, where, runTransaction } from 'firebase/firestore';
+
+
+async function checkAndDecrementQuota(userId: string): Promise<boolean> {
+    const userRef = doc(db, 'users', userId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const userDoc = await transaction.get(userRef);
+            if (!userDoc.exists()) {
+                throw new Error("User document not found.");
+            }
+
+            const userProfile = userDoc.data() as UserProfile;
+            const { quota } = userProfile;
+            
+            // For now, we assume monthly quota that doesn't reset automatically in this example
+            // A real app would use a cron job or check the date.
+            if (quota.generationsUsed >= quota.generationsLimit) {
+                throw new Error("You have exceeded your generation quota.");
+            }
+
+            transaction.update(userRef, { 'quota.generationsUsed': increment(1) });
+        });
+        return true;
+    } catch (error: any) {
+        console.error("Quota check/decrement failed:", error);
+        throw error; // Re-throw the error to be caught by the calling function
+    }
+}
 
 
 export async function handleGenerateComponent(
-  input: GenerateUiComponentInput
+  input: GenerateUiComponentInput,
+  userId: string
 ) {
   try {
+    const canGenerate = await checkAndDecrementQuota(userId);
+    if (!canGenerate) {
+        // This case might not be hit if checkAndDecrementQuota always throws, but it's good practice.
+        throw new Error("You have exceeded your generation quota.");
+    }
     const componentResult = await generateUiComponent(input);
     let layoutSuggestions = "Could not generate suggestions.";
 
@@ -37,6 +73,9 @@ export async function handleGenerateComponent(
   } catch (error: any)
 {
     console.error('Error in component generation flow:', error);
+    if (error.message.includes('quota')) {
+        throw new Error(error.message);
+    }
     if (error.message && (error.message.includes('503') || /service unavailable/i.test(error.message))) {
         throw new Error('The AI model is currently overloaded. Please try again in a few moments.');
     }
@@ -58,13 +97,21 @@ export async function handleEnhancePrompt(prompt: string) {
 }
 
 export async function handleCloneUrl(
-    input: CloneUrlInput
+    input: CloneUrlInput,
+    userId: string
 ) {
     try {
+        const canGenerate = await checkAndDecrementQuota(userId);
+        if (!canGenerate) {
+            throw new Error("You have exceeded your generation quota.");
+        }
         const result = await cloneUrl(input);
         return result;
     } catch (error: any) {
         console.error('Error in clone URL flow:', error);
+         if (error.message.includes('quota')) {
+            throw new Error(error.message);
+        }
         throw new Error('Failed to clone URL.');
     }
 }
