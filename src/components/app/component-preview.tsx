@@ -50,7 +50,7 @@ export function ComponentPreview({
   onFrameworkChange,
   isPublished = false, // Default to false
 }: ComponentPreviewProps) {
-  const { user, userProfile } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [isPublishing, setIsPublishing] = React.useState(false);
   const [showPublishDialog, setShowPublishDialog] = React.useState(false);
@@ -141,10 +141,6 @@ export function ComponentPreview({
         toast({ title: 'You must be logged in to publish', variant: 'destructive'});
         return;
     }
-    if (userProfile?.planId === 'free') {
-        toast({ title: 'Upgrade to a Pro plan to publish components', variant: 'destructive' });
-        return;
-    }
     if (!componentName.trim() || !componentCategory.trim()) {
         toast({ title: 'Name and category are required', variant: 'destructive'});
         return;
@@ -189,14 +185,6 @@ export function ComponentPreview({
   const onPublishClick = () => {
     if (!user) {
         toast({ title: 'You must be logged in to publish', variant: 'destructive'});
-        return;
-    }
-    if (userProfile?.planId === 'free') {
-        toast({ 
-            title: 'Feature not available',
-            description: 'Upgrade to a Pro plan to publish components to the community.',
-            variant: 'destructive' 
-        });
         return;
     }
     setShowPublishDialog(true);
