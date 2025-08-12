@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Users, Settings, LogOut, VenetianMask, User } from 'lucide-react';
+import { Home, Users, Settings, LogOut, VenetianMask, User, Heart } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Logo } from '../icons/logo';
@@ -46,6 +46,18 @@ export function Sidebar() {
                     </Link>
                     );
                 })}
+                 {user && (
+                    <Link
+                        href="/my-components"
+                        className={cn(
+                        'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+                        pathname === '/my-components' && 'bg-muted text-primary'
+                        )}
+                    >
+                        <Heart className="h-4 w-4" />
+                        My Components
+                    </Link>
+                 )}
             </nav>
         </div>
         <div className="mt-auto p-4 border-t">

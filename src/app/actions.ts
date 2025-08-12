@@ -8,7 +8,7 @@ import { enhancePrompt } from '@/ai/flows/enhance-prompt-flow';
 import { db } from '@/lib/firebase';
 import type { GalleryItem } from '@/lib/gallery-items';
 import { revalidatePath } from 'next/cache';
-import { collection, query, orderBy, limit, getDocs, DocumentData, doc, getDoc, increment, writeBatch } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs, DocumentData, doc, getDoc, increment, writeBatch, where } from 'firebase/firestore';
 
 
 export async function handleGenerateComponent(
@@ -102,6 +102,42 @@ export async function getCommunityComponents(limit_?: number): Promise<GalleryIt
     }
 }
 
+export async function getUserComponents(userId: string): Promise<GalleryItem[]> {
+    if (!userId) return [];
+
+    try {
+        const componentsCollection = collection(db, 'community_components');
+        const q = query(
+            componentsCollection, 
+            where('authorId', '==', userId),
+            orderBy('createdAt', 'desc')
+        );
+
+        const componentsSnapshot = await getDocs(q);
+
+        if (componentsSnapshot.empty) {
+            return [];
+        }
+        
+        const items = componentsSnapshot.docs.map(doc => {
+            const data = doc.data() as DocumentData;
+            const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+            return {
+                id: doc.id,
+                ...data,
+                createdAt
+            } as GalleryItem;
+        });
+
+        revalidatePath('/my-components');
+        return items;
+
+    } catch (error) {
+        console.error(`Error fetching components for user ${userId}:`, error);
+        return [];
+    }
+}
+
 export async function getComponentById(id: string): Promise<GalleryItem | null> {
     try {
         const docRef = doc(db, 'community_components', id);
@@ -155,6 +191,7 @@ export async function handleLikeComponent(componentId: string, userId: string): 
         const newLikes = updatedDoc.data()?.likes || 0;
 
         revalidatePath('/community');
+        revalidatePath('/my-components');
         revalidatePath(`/component/${componentId}`);
         return { success: true, likes: newLikes };
     } catch(e) {
@@ -168,6 +205,7 @@ export async function handleCopyComponent(componentId: string) {
      try {
         await writeBatch(db).update(componentRef, { copies: increment(1) }).commit();
         revalidatePath('/community');
+        revalidatePath('/my-components');
         revalidatePath(`/component/${componentId}`);
      } catch(e) {
         console.error("Error tracking copy:", e);

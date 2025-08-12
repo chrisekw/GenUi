@@ -10,7 +10,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
-import { Menu, Home, Users, Settings, LogOut, VenetianMask, User } from 'lucide-react';
+import { Menu, Home, Users, Settings, LogOut, VenetianMask, User, Heart } from 'lucide-react';
 import { Logo } from '../icons/logo';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
@@ -54,6 +54,18 @@ export function Header() {
                         </Link>
                         );
                     })}
+                    {user && (
+                        <Link
+                            href="/my-components"
+                            className={cn(
+                                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+                                pathname === '/my-components' && 'bg-muted text-primary'
+                            )}
+                        >
+                            <Heart className="h-4 w-4" />
+                            My Components
+                        </Link>
+                    )}
                 </nav>
             </div>
             <div className="mt-auto p-4 border-t">
@@ -82,6 +94,7 @@ export function Header() {
                                 <DropdownMenuLabel className="font-normal">
                                     <div className="flex flex-col space-y-1">
                                         <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
+
                                         <p className="text-xs leading-none text-muted-foreground">
                                             {user.email}
                                         </p>
