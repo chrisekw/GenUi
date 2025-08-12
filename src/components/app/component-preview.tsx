@@ -31,6 +31,7 @@ interface ComponentPreviewProps {
   prompt: string;
   onBack: () => void;
   onFrameworkChange: (framework: Framework) => void;
+  isPublished?: boolean; // New prop
 }
 
 const viewportSizes = {
@@ -47,6 +48,7 @@ export function ComponentPreview({
   prompt,
   onBack,
   onFrameworkChange,
+  isPublished = false, // Default to false
 }: ComponentPreviewProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -227,7 +229,7 @@ export function ComponentPreview({
                         <TabsTrigger value="tailwindcss" className="flex-1">Tailwind</TabsTrigger>
                     </TabsList>
                     </Tabs>
-                    {user && (
+                    {user && !isPublished && (
                          <Button variant="outline" onClick={() => setShowPublishDialog(true)} disabled={isPublishing}>
                             <Share2 className="mr-2 h-4 w-4" />
                             <span className="hidden sm:inline">Publish</span>

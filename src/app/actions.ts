@@ -8,7 +8,7 @@ import { enhancePrompt } from '@/ai/flows/enhance-prompt-flow';
 import { db } from '@/lib/firebase';
 import type { GalleryItem } from '@/lib/gallery-items';
 import { revalidatePath } from 'next/cache';
-import { collection, query, orderBy, limit, getDocs, DocumentData } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs, DocumentData, doc, getDoc, increment, writeBatch } from 'firebase/firestore';
 
 
 export async function handleGenerateComponent(
@@ -35,6 +35,9 @@ export async function handleGenerateComponent(
     console.error('Error in component generation flow:', error);
     if (error.message && (error.message.includes('503') || /service unavailable/i.test(error.message))) {
         throw new Error('The AI model is currently overloaded. Please try again in a few moments.');
+    }
+    if (error.message && /rate limit/i.test(error.message)) {
+        throw new Error('You have exceeded your request limit. Please try again later.');
     }
     throw new Error(error.message || 'Failed to generate component.');
   }
@@ -97,4 +100,76 @@ export async function getCommunityComponents(limit_?: number): Promise<GalleryIt
         // Returning an empty array is better than throwing an error for display components
         return [];
     }
+}
+
+export async function getComponentById(id: string): Promise<GalleryItem | null> {
+    try {
+        const docRef = doc(db, 'community_components', id);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+            return null;
+        }
+
+        const data = docSnap.data();
+        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+
+        return {
+            id: docSnap.id,
+            ...data,
+            createdAt,
+        } as GalleryItem;
+
+    } catch(e) {
+        console.error("Error fetching component", e);
+        return null;
+    }
+}
+
+export async function handleLikeComponent(componentId: string, userId: string): Promise<{ success: boolean, likes?: number }> {
+    if (!userId) {
+        return { success: false };
+    }
+    
+    const componentRef = doc(db, 'community_components', componentId);
+    const likeRef = doc(db, `users/${userId}/likes`, componentId);
+
+    try {
+        const batch = writeBatch(db);
+        const likeDoc = await getDoc(likeRef);
+
+        if (likeDoc.exists()) {
+            // User has already liked, so we unlike
+            batch.update(componentRef, { likes: increment(-1) });
+            batch.delete(likeRef);
+        } else {
+            // User has not liked, so we like
+            batch.update(componentRef, { likes: increment(1) });
+            batch.set(likeRef, { createdAt: new Date() });
+        }
+
+        await batch.commit();
+        
+        // Fetch the updated document to return the new like count
+        const updatedDoc = await getDoc(componentRef);
+        const newLikes = updatedDoc.data()?.likes || 0;
+
+        revalidatePath('/community');
+        revalidatePath(`/component/${componentId}`);
+        return { success: true, likes: newLikes };
+    } catch(e) {
+        console.error("Error liking component:", e);
+        return { success: false };
+    }
+}
+
+export async function handleCopyComponent(componentId: string) {
+     const componentRef = doc(db, 'community_components', componentId);
+     try {
+        await writeBatch(db).update(componentRef, { copies: increment(1) }).commit();
+        revalidatePath('/community');
+        revalidatePath(`/component/${componentId}`);
+     } catch(e) {
+        console.error("Error tracking copy:", e);
+     }
 }
