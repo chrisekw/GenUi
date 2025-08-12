@@ -7,7 +7,6 @@ import { getUserComponents } from '@/app/actions';
 import type { GalleryItem } from '@/lib/gallery-items';
 import { Header } from '@/components/app/header';
 import { Sidebar } from '@/components/app/sidebar';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, Copy, Eye } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
