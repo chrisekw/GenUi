@@ -102,7 +102,7 @@ export default function CommunityFeedPage() {
       <Sidebar />
       <div className="flex flex-col">
         <Header />
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 bg-background">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 bg-background animate-fade-in">
           <div className="grid w-full max-w-7xl mx-auto gap-2">
             <h1 className="text-3xl font-semibold">Community Gallery</h1>
             <p className="text-muted-foreground">
@@ -118,8 +118,12 @@ export default function CommunityFeedPage() {
                       <p className="text-muted-foreground">No components published yet. Be the first!</p>
                   </div>
               ) : (
-                  components.map((item) => (
-                  <div key={item.id} className="group relative rounded-xl border border-border/20 bg-card/60 text-card-foreground shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:border-border/50 overflow-hidden">
+                  components.map((item, index) => (
+                  <div 
+                    key={item.id} 
+                    className="group relative rounded-xl border border-border/20 bg-card/60 text-card-foreground shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:border-border/50 overflow-hidden hover:-translate-y-1 animate-fade-in-up"
+                    style={{ animationDelay: `${index * 100}ms`}}
+                  >
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"/>
                       <div className="p-1">
                           <div className="relative aspect-video rounded-lg overflow-hidden border border-border/10 shadow-inner">

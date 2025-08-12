@@ -18,7 +18,7 @@ export default function ProfilePage() {
                 <Sidebar />
                 <div className="flex flex-col">
                     <Header />
-                    <main className="flex flex-1 items-center justify-center">
+                    <main className="flex flex-1 items-center justify-center animate-fade-in">
                         <p>Please log in to view your profile.</p>
                     </main>
                 </div>
@@ -31,7 +31,7 @@ export default function ProfilePage() {
       <Sidebar />
       <div className="flex flex-col">
         <Header />
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 animate-fade-in">
             <div className="grid w-full max-w-6xl gap-2">
                 <h1 className="text-3xl font-semibold">Profile</h1>
             </div>
