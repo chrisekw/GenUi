@@ -18,11 +18,14 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    // Allow data URIs
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    contentDispositionType: 'inline',
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '2mb',
-      // Allow more time for AI operations to complete
+      bodySizeLimit: '10mb', // Increase for image uploads
       serverActionsTimeout: 120, 
     },
   },

@@ -5,6 +5,7 @@ import { generateUiComponent, GenerateUiComponentInput } from '@/ai/flows/genera
 import { optimizeComponentLayout } from '@/ai/flows/optimize-component-layout';
 import { cloneUrl, CloneUrlInput } from '@/ai/flows/clone-url-flow';
 import { enhancePrompt } from '@/ai/flows/enhance-prompt-flow';
+import { replaceImagePlaceholders } from '@/ai/flows/replace-image-placeholders-flow';
 import { db } from '@/lib/firebase';
 import type { GalleryItem } from '@/lib/gallery-items';
 import { revalidatePath } from 'next/cache';
@@ -26,8 +27,11 @@ export async function handleGenerateComponent(
         // Don't rethrow, just use the default suggestions
     }
 
+    // New step: replace placeholder images
+    const imageResult = await replaceImagePlaceholders({ html: componentResult.code });
+
     return {
-      code: componentResult.code,
+      code: imageResult.html,
       suggestions: layoutSuggestions,
     };
   } catch (error: any)
