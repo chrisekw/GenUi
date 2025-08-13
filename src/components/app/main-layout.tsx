@@ -148,7 +148,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
                     placeholder="A pricing card with three tiers and a call to action button."
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    className="bg-background border rounded-lg p-4 pr-28 h-28 text-base focus-visible:ring-1 focus-visible:ring-ring"
+                    className="bg-background border rounded-lg p-4 pr-28 h-36 text-base focus-visible:ring-1 focus-visible:ring-ring"
                 />
                 <div className="absolute bottom-3 right-3 flex items-center gap-2">
                     <input
@@ -335,9 +335,9 @@ export function MainLayout() {
   }
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[288px_1fr]">
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <Sidebar />
-      <div className="flex flex-col md:pl-[288px]">
+      <div className="flex flex-col">
         <Header />
         <main className="flex flex-1 flex-col gap-4 bg-muted/40 md:gap-8">
             {activeView === 'prompt' && (

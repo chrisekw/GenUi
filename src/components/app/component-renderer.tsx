@@ -58,6 +58,12 @@ export function ComponentRenderer({ code, framework, html }: ComponentRendererPr
         --input: 240 3.7% 15.9%;
         --ring: 240 4.9% 83.9%;
       }
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+      }
       body { 
         background-color: hsl(var(--background));
         color: hsl(var(--foreground));
@@ -65,10 +71,7 @@ export function ComponentRenderer({ code, framework, html }: ComponentRendererPr
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 100%;
-        height: 100%;
-        min-height: 100vh;
-        padding: 1rem;
+        min-height: 100%;
         box-sizing: border-box;
       }
     `;
@@ -82,7 +85,7 @@ export function ComponentRenderer({ code, framework, html }: ComponentRendererPr
           <style>${baseStyles}</style>
         </head>
         <body class="bg-background text-foreground">
-          ${code}
+          <div style="padding: 1rem;">${code}</div>
         </body>
       </html>
     `;
