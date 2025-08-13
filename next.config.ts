@@ -17,6 +17,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'saaswheel.com',
+        port: '',
+        pathname: '/**',
+      }
     ],
     // Allow data URIs
     dangerouslyAllowSVG: true,

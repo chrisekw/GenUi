@@ -53,6 +53,9 @@ export function Sidebar() {
           </nav>
         </div>
         <div className="mt-auto p-4">
+            <div className="pb-4">
+              <a target="_blank" rel="noopener noreferrer" href="https://saaswheel.com"><img style={{height: '54px'}} height="54" src="https://saaswheel.com/assets/images/badge.png" alt="SaaS Wheel" /></a>
+            </div>
            {user ? (
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
