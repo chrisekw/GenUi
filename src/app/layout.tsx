@@ -7,6 +7,9 @@ import { Providers } from './providers';
 export const metadata: Metadata = {
   title: 'GenoUI: AI Component Generator',
   description: 'Generate UI components from natural language with AI.',
+  verification: {
+    google: '8hqGShKfKXX3w98jH-1eAR124LjHHchdmMKR_qEbh_g',
+  },
 };
 
 export default function RootLayout({
