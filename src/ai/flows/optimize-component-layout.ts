@@ -20,7 +20,7 @@ const OptimizeComponentLayoutInputSchema = z.object({
       'A natural language prompt describing the UI component to be generated.'
     ),
   framework: z
-    .enum(['html'])
+    .enum(['html', 'tailwindcss'])
     .default('html')
     .describe('The target framework for the UI component.'),
 });
