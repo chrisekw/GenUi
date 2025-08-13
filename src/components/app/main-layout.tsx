@@ -168,8 +168,8 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center gap-2">
             {suggestionButtons.map((item, index) => (
-                <Button key={index} variant="outline" className="rounded-lg" onClick={() => handleSuggestionClick(item)}>
-                  <item.icon className="h-4 w-4" />
+                <Button key={index} variant="outline" className="rounded-lg h-auto" onClick={() => handleSuggestionClick(item)}>
+                  <item.icon className="h-4 w-4 mr-2" />
                   <span>{item.text}</span>
                 </Button>
             ))}
@@ -211,7 +211,7 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
 }
 
 export function MainLayout() {
-  const { user, refreshUserProfile } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -264,7 +264,6 @@ export function MainLayout() {
       if (currentImageUrl) {
         setImageUrl(currentImageUrl);
       }
-      await refreshUserProfile();
     } catch (error: any) {
       console.error(error);
       toast({
@@ -306,7 +305,6 @@ export function MainLayout() {
       setFramework(currentFramework);
       setPrompt(`A component cloned from ${url}`);
       setImageUrl(null);
-      await refreshUserProfile();
     } catch (error: any) {
         console.error(error);
         toast({
@@ -339,7 +337,7 @@ export function MainLayout() {
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <Sidebar />
-      <div className="flex flex-col">
+      <div className="flex flex-col md:pl-[220px] lg:pl-[280px]">
         <Header />
         <main className="flex flex-1 flex-col gap-4 bg-muted/40 md:gap-8">
             {activeView === 'prompt' && (
