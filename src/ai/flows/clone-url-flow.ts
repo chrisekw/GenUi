@@ -15,23 +15,33 @@ import {z} from 'genkit';
 const getUrlContentTool = ai.defineTool(
     {
       name: 'getUrlContent',
-      description: 'Retrieves the HTML content of a given URL.',
+      description: 'Retrieves the full, rendered HTML content of a given URL using a headless browser to ensure all JavaScript and CSS is processed.',
       inputSchema: z.object({ url: z.string().url() }),
       outputSchema: z.string(),
     },
     async ({ url }) => {
       try {
-        const response = await fetch(url, {
+        // Use a browserless.io API to get rendered HTML
+        // This is a common technique to handle sites that are heavily reliant on client-side JS
+        const response = await fetch(`https://chrome.browserless.io/content?token=${process.env.BROWSERLESS_API_KEY}`, {
+            method: 'POST',
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
+                'Cache-Control': 'no-cache',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                url: url,
+                waitFor: 2000, // wait for 2 seconds for JS to execute
+            })
         });
+
         if (!response.ok) {
-          return `Error fetching URL: Received status code ${response.status}. Please check if the URL is correct and accessible.`;
+          const errorText = await response.text();
+          return `Error fetching URL with browserless: Received status code ${response.status}. Details: ${errorText}`;
         }
         return await response.text();
       } catch (e: any) {
-        return `Error fetching URL: ${e.message}. Please ensure the URL is valid and the server has CORS enabled if running in a browser environment.`;
+        return `Error fetching URL: ${e.message}. Please ensure the URL is valid and publicly accessible.`;
       }
     }
 );
@@ -61,8 +71,8 @@ const prompt = ai.definePrompt({
 
 You are not just replicating the code. You are re-building the component from scratch using modern best practices, beautiful aesthetics, and clean, maintainable code.
 
-1.  **Analyze**: Use the \`getUrlContent\` tool to fetch the HTML and understand the DOM structure, layout, typography, and color scheme of the target URL. If the tool returns an error, report it back to the user instead of generating code.
-2.  **Redesign**: Re-imagine the component with a focus on modern design principles. Improve the visual hierarchy, spacing, and overall aesthetic. The result should be more beautiful and professional than the original.
+1.  **Analyze**: Use the \`getUrlContent\` tool to fetch the rendered HTML and understand the DOM structure, layout, typography, and color scheme of the target URL. If the tool returns an error, report it back to the user instead of generating code.
+2.  **Redesign & Replicate**: Replicate the core design and layout of the component from the URL. Then, improve upon it with a focus on modern design principles. Enhance the visual hierarchy, spacing, and overall aesthetic. The result should be more beautiful and professional than the original, but clearly recognizable.
 3.  **Implement**: Generate a single, production-grade component using Tailwind CSS for styling. The code must be clean, responsive, and accessible (including ARIA roles).
 
 The target framework is: {{{framework}}}
@@ -79,6 +89,9 @@ const cloneUrlFlow = ai.defineFlow(
     outputSchema: CloneUrlOutputSchema,
   },
   async input => {
+    if (!process.env.BROWSERLESS_API_KEY) {
+        return { code: 'Error: BROWSERLESS_API_KEY is not configured on the server. The Clone URL feature is disabled.' };
+    }
     const {output} = await prompt(input);
     return output!;
   }
