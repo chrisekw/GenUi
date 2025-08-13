@@ -159,7 +159,7 @@ export function ComponentPreview({
             category: componentCategory,
             previewHtml,
             authorId: user.uid,
-            authorName: userProfile.displayName,
+            authorName: userProfile.displayName || user.email,
             authorImage: userProfile.photoURL,
             likes: 0,
             copies: 0,
@@ -347,3 +347,5 @@ export function ComponentPreview({
     </div>
   )
 }
+
+    
