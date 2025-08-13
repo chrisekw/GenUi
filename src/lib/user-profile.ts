@@ -6,6 +6,6 @@ export interface UserProfile {
     uid: string;
     email: string;
     planId: PlanId;
-    displayName?: string;
-    photoURL?: string;
+    displayName?: string | null;
+    photoURL?: string | null;
 }

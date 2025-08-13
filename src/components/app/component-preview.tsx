@@ -50,7 +50,7 @@ export function ComponentPreview({
   onFrameworkChange,
   isPublished = false, // Default to false
 }: ComponentPreviewProps) {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { toast } = useToast();
   const [isPublishing, setIsPublishing] = React.useState(false);
   const [showPublishDialog, setShowPublishDialog] = React.useState(false);
@@ -137,7 +137,7 @@ export function ComponentPreview({
   };
 
   const handlePublish = async () => {
-    if (!user) {
+    if (!user || !userProfile) {
         toast({ title: 'You must be logged in to publish', variant: 'destructive'});
         return;
     }
@@ -159,8 +159,8 @@ export function ComponentPreview({
             category: componentCategory,
             previewHtml,
             authorId: user.uid,
-            authorName: user.displayName,
-            authorImage: user.photoURL,
+            authorName: userProfile.displayName,
+            authorImage: userProfile.photoURL,
             likes: 0,
             copies: 0,
             createdAt: serverTimestamp(),

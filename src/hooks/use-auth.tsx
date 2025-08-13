@@ -9,7 +9,8 @@ import {
   signOut as firebaseSignOut,
   type User,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  updateProfile
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { usePathname, useRouter } from 'next/navigation';
@@ -23,7 +24,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, pass: string) => Promise<any>;
-  signUpWithEmail: (email: string, pass: string) => Promise<any>;
+  signUpWithEmail: (email: string, pass: string, displayName: string) => Promise<any>;
   signOut: () => Promise<void>;
   refreshUserProfile: () => Promise<void>;
 }
@@ -47,6 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
        const newProfile: UserProfile = {
           uid: firebaseUser.uid,
           email: firebaseUser.email!,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
           planId: 'Free',
        };
        await setDoc(userRef, newProfile);
@@ -88,14 +91,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUpWithEmail = async (email: string, pass: string) => {
+  const signUpWithEmail = async (email: string, pass: string, displayName: string) => {
     const result = await createUserWithEmailAndPassword(auth, email, pass);
     const { user } = result;
-    // Create user profile document
+    
+    // Update Firebase Auth profile
+    await updateProfile(user, { displayName });
+
+    // Create user profile document in Firestore
     const userRef = doc(db, 'users', user.uid);
     const newProfile: UserProfile = {
       uid: user.uid,
       email: user.email!,
+      displayName: displayName,
       planId: 'Free',
     };
     await setDoc(userRef, newProfile);

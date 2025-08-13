@@ -58,7 +58,7 @@ export function CommunityGallery() {
       {loading ? renderSkeleton() : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {components.map((item) => (
-            <Link key={item.id} href={`/community#${item.id}`} className="group">
+            <Link key={item.id} href={`/component/${item.id}`} className="group">
               <Card className="overflow-hidden h-full">
                 <CardContent className="p-0">
                     <div className="bg-muted aspect-video flex items-center justify-center overflow-hidden">

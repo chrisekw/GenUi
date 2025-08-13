@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 
 export default function MyComponentsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -31,40 +31,55 @@ export default function MyComponentsPage() {
   const [components, setComponents] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
-
-  // State to track liked components for instant feedback
   const [likedComponents, setLikedComponents] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (!authLoading && user) {
-      async function fetchUserComponents() {
-        setLoading(true);
-        try {
-          const userComps = await getUserComponents(user.uid);
-          setComponents(userComps);
-
-          // Check which components the user has liked
-          const liked: Record<string, boolean> = {};
-          for (const comp of userComps) {
-              const likeRef = doc(db, `users/${user.uid}/likes`, comp.id);
-              const likeDoc = await getDoc(likeRef);
-              if (likeDoc.exists()) {
-                  liked[comp.id] = true;
-              }
-          }
-          setLikedComponents(liked);
-
-        } catch (error) {
-          console.error("Error fetching user components:", error);
-          toast({ title: 'Failed to load your components', variant: 'destructive'});
-        } finally {
-          setLoading(false);
-        }
-      }
-      fetchUserComponents();
-    } else if (!authLoading && !user) {
-        setLoading(false);
+    if (authLoading) {
+      setLoading(true);
+      return;
     }
+    if (!user) {
+      setLoading(false);
+      setComponents([]);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'community_components'),
+      where('authorId', '==', user.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const userComps = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date()
+        } as GalleryItem;
+      });
+      setComponents(userComps);
+
+      const checkLikes = async () => {
+        const liked: Record<string, boolean> = {};
+        for (const comp of userComps) {
+          const likeRef = doc(db, `users/${user.uid}/likes`, comp.id);
+          const likeDoc = await getDoc(likeRef);
+          if (likeDoc.exists()) {
+            liked[comp.id] = true;
+          }
+        }
+        setLikedComponents(liked);
+      };
+      checkLikes();
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching user components:", error);
+      toast({ title: 'Failed to load your components', variant: 'destructive'});
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [user, authLoading, toast]);
 
 

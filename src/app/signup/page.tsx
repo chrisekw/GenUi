@@ -15,6 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 const signupSchema = z.object({
+  username: z.string().min(3, { message: 'Username must be at least 3 characters' }),
   email: z.string().email({ message: 'Invalid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
   confirmPassword: z.string()
@@ -34,6 +35,7 @@ export default function SignupPage() {
   const methods = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
+      username: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -51,7 +53,7 @@ export default function SignupPage() {
   const handleSignup = async (data: SignupValues) => {
     setIsLoading(true);
     try {
-      await signUpWithEmail(data.email, data.password);
+      await signUpWithEmail(data.email, data.password, data.username);
       toast({
         title: 'Signup successful!',
         description: 'Welcome! You can now sign in.',
@@ -79,6 +81,15 @@ export default function SignupPage() {
         <CardContent>
           <FormProvider {...methods}>
             <form onSubmit={handleSubmit(handleSignup)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Controller
+                    name="username"
+                    control={control}
+                    render={({ field }) => <Input id="username" type="text" placeholder="your_username" {...field} />}
+                />
+                {errors.username && <p className="text-sm text-destructive">{errors.username.message}</p>}
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Controller
