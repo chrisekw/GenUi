@@ -41,6 +41,8 @@ const nextConfig: NextConfig = {
         'firebase-admin': false,
       };
     }
+    // This is the new rule to handle the opentelemetry issue
+    config.externals.push('@opentelemetry/winston-transport');
     return config;
   },
 };
