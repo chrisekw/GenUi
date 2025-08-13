@@ -339,9 +339,9 @@ export function MainLayout() {
       <Sidebar />
       <div className="flex flex-col">
         <Header />
-        <main className="flex flex-1 flex-col gap-4 bg-muted/40 md:gap-8">
+        <main className="flex flex-1 flex-col bg-muted/40">
             {activeView === 'prompt' && (
-                <>
+                <div className="flex-1 overflow-y-auto">
                     <PromptView 
                         prompt={prompt}
                         setPrompt={setPrompt}
@@ -352,7 +352,7 @@ export function MainLayout() {
                         setImageUrl={setImageUrl}
                     />
                     <CommunityGallery />
-                </>
+                </div>
             )}
             {activeView === 'preview' && (
             <div className="h-[calc(100vh-60px)]">
