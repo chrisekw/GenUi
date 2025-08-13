@@ -160,7 +160,7 @@ export function ComponentPreview({
             previewHtml,
             authorId: user.uid,
             authorName: userProfile.displayName || user.email,
-            authorImage: userProfile.photoURL,
+            authorImage: userProfile.photoURL || null,
             likes: 0,
             copies: 0,
             createdAt: serverTimestamp(),
