@@ -69,7 +69,7 @@ export function Header() {
                     )}
                     {userProfile?.isAdmin && (
                         <Link
-                            href="/admin/users"
+                            href="/admin/dashboard"
                             className={cn(
                                 'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
                                 pathname.startsWith('/admin') && 'bg-muted text-primary'
@@ -141,11 +141,11 @@ export function Header() {
 
     return (
         <header className="flex h-14 items-center justify-between gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-20 md:px-6">
-            <div className="md:hidden">
-                <Link href="/" className="flex items-center gap-2 font-semibold">
-                    <Logo />
-                    <span className="">GenoUI</span>
-                </Link>
+            <div className="flex items-center gap-2 font-semibold md:hidden">
+              <Link href="/" className="flex items-center gap-2 font-semibold">
+                <Logo />
+                <span className="">GenoUI</span>
+              </Link>
             </div>
             
             <div className="w-full flex-1">

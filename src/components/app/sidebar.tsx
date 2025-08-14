@@ -53,7 +53,7 @@ export function Sidebar() {
               })}
               {userProfile?.isAdmin && (
                  <Link
-                    href="/admin/users"
+                    href="/admin/dashboard"
                     className={cn(
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
                       pathname.startsWith('/admin') && 'bg-muted text-primary'
