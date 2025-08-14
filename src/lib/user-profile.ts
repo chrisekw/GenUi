@@ -8,4 +8,5 @@ export interface UserProfile {
     planId: PlanId;
     displayName?: string | null;
     photoURL?: string | null;
+    isAdmin?: boolean;
 }

@@ -10,7 +10,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
-import { Menu, Home, Users, Settings, LogOut, VenetianMask, User, Heart, DollarSign } from 'lucide-react';
+import { Menu, Home, Users, Settings, LogOut, VenetianMask, User, Heart, DollarSign, Shield } from 'lucide-react';
 import { Logo } from '../icons/logo';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
@@ -26,7 +26,7 @@ const navItems = [
 ];
 
 export function Header() {
-    const { user, signOut } = useAuth();
+    const { user, userProfile, signOut } = useAuth();
     const pathname = usePathname();
 
     const mobileNavContent = (
@@ -67,12 +67,24 @@ export function Header() {
                             My Components
                         </Link>
                     )}
+                    {userProfile?.isAdmin && (
+                        <Link
+                            href="/admin/users"
+                            className={cn(
+                                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+                                pathname.startsWith('/admin') && 'bg-muted text-primary'
+                            )}
+                        >
+                            <Shield className="h-4 w-4" />
+                            Admin
+                        </Link>
+                    )}
                 </nav>
             </div>
             <div className="mt-auto p-4 border-t">
                 <div className="grid gap-4">
                     <Link
-                        href="/settings"
+                        href="/settings/profile"
                         className={cn('flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary', pathname.startsWith('/settings') && 'bg-muted text-primary')}
                     >
                         <Settings className="h-4 w-4" />
@@ -86,7 +98,7 @@ export function Header() {
                                         <AvatarImage src={user.photoURL ?? ''} />
                                         <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
                                     </Avatar>
-                                    <div className="flex flex-col items-start">
+                                    <div className="flex flex-col items-start overflow-hidden">
                                         <span className="text-sm font-medium truncate">{user.displayName || user.email}</span>
                                     </div>
                                 </Button>
@@ -95,8 +107,7 @@ export function Header() {
                                 <DropdownMenuLabel className="font-normal">
                                     <div className="flex flex-col space-y-1">
                                         <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
-
-                                        <p className="text-xs leading-none text-muted-foreground">
+                                        <p className="text-xs leading-none text-muted-foreground truncate">
                                             {user.email}
                                         </p>
                                     </div>
@@ -130,10 +141,12 @@ export function Header() {
 
     return (
         <header className="flex h-14 items-center justify-between gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-20 md:px-6">
-            <Link href="/" className="flex items-center gap-2 font-semibold md:hidden">
-                <Logo />
-                <span className="">GenoUI</span>
-            </Link>
+            <div className="md:hidden">
+                <Link href="/" className="flex items-center gap-2 font-semibold">
+                    <Logo />
+                    <span className="">GenoUI</span>
+                </Link>
+            </div>
             
             <div className="w-full flex-1">
                 {/* Can add search or other header elements here */}
@@ -150,7 +163,7 @@ export function Header() {
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="flex flex-col p-0">
+                <SheetContent side="left" className="flex flex-col p-0 max-w-xs">
                         <SheetHeader className="sr-only">
                         <SheetTitle>Navigation Menu</SheetTitle>
                     </SheetHeader>

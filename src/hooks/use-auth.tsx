@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           displayName: firebaseUser.displayName,
           photoURL: firebaseUser.photoURL,
           planId: 'Free',
+          isAdmin: false, // Default to not admin
        };
        await setDoc(userRef, newProfile);
        setUserProfile(newProfile);
@@ -105,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: user.email!,
       displayName: displayName,
       planId: 'Free',
+      isAdmin: false,
     };
     await setDoc(userRef, newProfile);
     setUserProfile(newProfile);
@@ -122,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await firebaseSignOut(auth);
       setUserProfile(null);
       // Redirect to login page after sign out only if not on a public page
-      if (pathname !== '/') {
+      if (!['/', '/login', '/signup', '/community', '/pricing'].includes(pathname)) {
         router.push('/login');
       }
     } catch (error) {
