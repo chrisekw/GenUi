@@ -8,7 +8,7 @@ import type { GalleryItem } from '@/lib/gallery-items';
 import { getCommunityComponents } from '@/app/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ComponentRenderer } from '@/components/app/component-renderer';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
 export function CommunityGallery() {
   const [components, setComponents] = React.useState<GalleryItem[]>([]);
@@ -31,14 +31,16 @@ export function CommunityGallery() {
   const renderSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {Array.from({ length: 4 }).map((_, i) => (
-        <Card key={i} className="overflow-hidden">
-          <CardContent className="p-0">
-            <Skeleton className="w-full h-64" />
-             <div className="p-4">
-                <Skeleton className="h-5 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-1/2" />
-            </div>
+        <Card key={i} className="overflow-hidden bg-muted/30">
+          <CardContent className="p-4 aspect-[4/3]">
+            <Skeleton className="w-full h-full bg-background rounded-md" />
           </CardContent>
+          <CardFooter className="p-4">
+            <div className="w-full">
+              <Skeleton className="h-5 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          </CardFooter>
         </Card>
       ))}
     </div>
@@ -59,16 +61,18 @@ export function CommunityGallery() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {components.map((item) => (
             <Link key={item.id} href={`/component/${item.id}`} className="group">
-              <Card className="overflow-hidden h-full">
-                <CardContent className="p-0">
-                    <div className="bg-muted aspect-video flex items-center justify-center overflow-hidden">
+              <Card className="overflow-hidden h-full bg-muted/30 hover:shadow-lg transition-shadow duration-300">
+                <CardContent className="p-4 aspect-[4/3]">
+                    <div className="bg-background w-full h-full rounded-md border shadow-sm overflow-hidden">
                         <ComponentRenderer html={item.previewHtml} />
                     </div>
-                     <div className="p-4">
+                </CardContent>
+                <CardFooter className="p-4 border-t">
+                    <div>
                         <h3 className="font-semibold truncate group-hover:text-primary">{item.name}</h3>
                         <p className="text-sm text-muted-foreground">By {item.authorName || 'Anonymous'}</p>
                     </div>
-                </CardContent>
+                </CardFooter>
               </Card>
             </Link>
           ))}

@@ -45,7 +45,8 @@ export default function MyComponentsPage() {
 
     const q = query(
       collection(db, 'community_components'),
-      where('authorId', '==', user.uid)
+      where('authorId', '==', user.uid),
+      orderBy('createdAt', 'desc')
     );
 
     const unsubscribe = onSnapshot(q, async (snapshot) => {
@@ -163,11 +164,11 @@ export default function MyComponentsPage() {
         {components.map((item, index) => (
            <Card 
             key={item.id}
-            className="group relative flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in-up"
+            className="group relative flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in-up bg-muted/30"
             style={{ animationDelay: `${index * 100}ms`}}
           >
-              <CardContent className="p-0 aspect-video flex-grow">
-                <Link href={`/component/${item.id}`} className="block w-full h-full">
+              <CardContent className="p-4 aspect-[4/3] flex-grow">
+                <Link href={`/component/${item.id}`} className="block w-full h-full bg-background rounded-md border shadow-sm overflow-hidden">
                   <ComponentRenderer html={item.previewHtml} />
                 </Link>
               </CardContent>
