@@ -70,13 +70,19 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
         return;
     }
 
+    if (item.text === 'Clone URL') {
+        toast({
+            title: 'Coming Soon!',
+            description: 'The Clone URL feature is currently in development.',
+        });
+        return;
+    }
+
     const newPrompt = item.prompt;
     setPrompt(newPrompt);
 
     if (item.text === 'Image-based') {
         handleUploadClick();
-    } else if (item.text === 'Clone URL') {
-        setShowCloneDialog(true);
     }
   }
 
