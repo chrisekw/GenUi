@@ -3,12 +3,11 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { getUserComponents } from '@/app/actions';
 import type { GalleryItem } from '@/lib/gallery-items';
 import { Header } from '@/components/app/header';
 import { Sidebar } from '@/components/app/sidebar';
 import { Button } from '@/components/ui/button';
-import { Heart, Copy, GitFork } from 'lucide-react';
+import { Heart, Copy, GitFork, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ComponentRenderer } from '@/components/app/component-renderer';
@@ -16,11 +15,11 @@ import { useToast } from '@/hooks/use-toast';
 import { handleLikeComponent, handleCopyComponent } from '@/app/actions';
 import { cn } from '@/lib/utils';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
@@ -49,7 +48,7 @@ export default function MyComponentsPage() {
       where('authorId', '==', user.uid)
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
       const userComps = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
@@ -60,18 +59,15 @@ export default function MyComponentsPage() {
       });
       setComponents(userComps);
 
-      const checkLikes = async () => {
-        const liked: Record<string, boolean> = {};
-        for (const comp of userComps) {
-          const likeRef = doc(db, `users/${user.uid}/likes`, comp.id);
-          const likeDoc = await getDoc(likeRef);
-          if (likeDoc.exists()) {
-            liked[comp.id] = true;
-          }
+      const liked: Record<string, boolean> = {};
+      for (const comp of userComps) {
+        const likeRef = doc(db, `users/${user.uid}/likes`, comp.id);
+        const likeDoc = await getDoc(likeRef);
+        if (likeDoc.exists()) {
+          liked[comp.id] = true;
         }
-        setLikedComponents(liked);
-      };
-      checkLikes();
+      }
+      setLikedComponents(liked);
       setLoading(false);
     }, (error) => {
       console.error("Error fetching user components:", error);
@@ -90,29 +86,25 @@ export default function MyComponentsPage() {
     }
     const isCurrentlyLiked = !!likedComponents[componentId];
 
-    // Optimistic update
-    startTransition(() => {
-        setLikedComponents(prev => ({...prev, [componentId]: !isCurrentlyLiked}));
-        setComponents(prev => prev.map(c => 
-            c.id === componentId 
-            ? {...c, likes: (c.likes || 0) + (isCurrentlyLiked ? -1 : 1)} 
-            : c
-        ));
-    });
+    // Optimistic UI update
+    setLikedComponents(prev => ({...prev, [componentId]: !isCurrentlyLiked}));
+    setComponents(prev => prev.map(c => 
+        c.id === componentId 
+        ? {...c, likes: (c.likes || 0) + (isCurrentlyLiked ? -1 : 1)} 
+        : c
+    ));
 
     startTransition(async () => {
         const result = await handleLikeComponent(componentId, user.uid);
         if (!result.success) {
             toast({ title: 'Failed to update like', variant: 'destructive' });
             // Revert optimistic update on failure
-            startTransition(() => {
-                setLikedComponents(prev => ({...prev, [componentId]: isCurrentlyLiked}));
-                 setComponents(prev => prev.map(c => 
-                    c.id === componentId 
-                    ? {...c, likes: (c.likes || 0) - (isCurrentlyLiked ? -1 : 1)} 
-                    : c
-                ));
-            });
+            setLikedComponents(prev => ({...prev, [componentId]: isCurrentlyLiked}));
+            setComponents(prev => prev.map(c => 
+                c.id === componentId 
+                ? {...c, likes: (c.likes || 0) - (isCurrentlyLiked ? -1 : 1)} 
+                : c
+            ));
         }
     });
   }
@@ -121,16 +113,12 @@ export default function MyComponentsPage() {
     navigator.clipboard.writeText(code);
     toast({ title: 'Code copied to clipboard!' });
     
-    // Optimistic update for copy count
     startTransition(() => {
         setComponents(prev => prev.map(c => 
             c.id === componentId 
             ? {...c, copies: (c.copies || 0) + 1} 
             : c
         ));
-    });
-
-    startTransition(() => {
         handleCopyComponent(componentId);
     });
   }
@@ -198,22 +186,23 @@ export default function MyComponentsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onLikeClick(item.id)} disabled={isPending}>
-                              <Heart className={cn("h-4 w-4", likedComponents[item.id] && "fill-red-500 text-red-500")} />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Like</p></TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onCopyClick(item.code, item.id)}>
-                              <Copy className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Copy Code</p></TooltipContent>
-                      </Tooltip>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onLikeClick(item.id)} disabled={isPending}>
+                            <Heart className={cn("mr-2 h-4 w-4", likedComponents[item.id] && "fill-red-500 text-red-500")} />
+                            <span>{likedComponents[item.id] ? 'Unlike' : 'Like'}</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onCopyClick(item.code, item.id)}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            <span>Copy Code</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                   </div>
               </CardFooter>
           </Card>
@@ -236,9 +225,7 @@ export default function MyComponentsPage() {
             </p>
           </div>
           
-          <TooltipProvider>
             {renderContent()}
-          </TooltipProvider>
         </main>
       </div>
     </div>
