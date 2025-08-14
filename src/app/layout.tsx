@@ -11,13 +11,13 @@ export const metadata: Metadata = {
   title: 'GenoUI: AI Component Generator & UI Builder',
   description: 'Generate production-ready UI components from natural language or an image with AI. Build, preview, and publish beautiful Tailwind CSS and HTML components.',
   keywords: [
-    'AI component generator', 
-    'UI builder', 
-    'Tailwind CSS', 
-    'Next.js', 
-    'React components', 
-    'generative UI', 
-    'AI web design', 
+    'AI component generator',
+    'UI builder',
+    'Tailwind CSS',
+    'Next.js',
+    'React components',
+    'generative UI',
+    'AI web design',
     'HTML generator',
     'AI coding assistant',
     'frontend development tools',
@@ -30,7 +30,17 @@ export const metadata: Metadata = {
     'web application builder',
     'user interface design AI',
     'build UI with AI',
-    'component library generator'
+    'component library generator',
+    'AI front-end developer',
+    'website builder with AI',
+    'AI for UI/UX design',
+    'generative design',
+    'code generation AI',
+    'AI app builder',
+    'Next.js starter AI',
+    'React AI tools',
+    'Tailwind CSS AI',
+    'AI HTML code generator'
   ],
   authors: [{ name: 'GenoUI Team' }],
   creator: 'GenoUI',
@@ -61,7 +71,7 @@ export const metadata: Metadata = {
     // images: [`${BASE_URL}/og-image.png`], // Add twitter image
   },
   verification: {
-    google: '8hqGShKfKXX3w98jH-1eAR124LjHHchdmMKR_qEbh_g',
+    google: '9ifqbutJRLZ3_J8Er3nA_aD1UjORyyYD3Rdwkckkoho',
   },
   robots: {
     index: true,
