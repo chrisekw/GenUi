@@ -61,8 +61,8 @@ export function CommunityGallery() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {components.map((item) => (
             <Link key={item.id} href={`/component/${item.id}`} className="group">
-              <Card className="overflow-hidden h-full bg-muted/30 hover:shadow-lg transition-shadow duration-300">
-                <CardContent className="p-4 aspect-[4/3]">
+              <Card className="overflow-hidden h-full flex flex-col bg-transparent transition-all duration-300 hover:bg-muted/40 hover:shadow-lg">
+                <CardContent className="p-4 aspect-[4/3] flex-grow">
                     <div className="bg-background w-full h-full rounded-md border shadow-sm overflow-hidden">
                         <ComponentRenderer html={item.previewHtml} />
                     </div>

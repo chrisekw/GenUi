@@ -147,7 +147,7 @@ export default function CommunityFeedPage() {
                 components.map((item, index) => (
                 <Card 
                   key={item.id}
-                  className="group relative flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in-up bg-muted/30"
+                  className="group relative flex flex-col overflow-hidden transition-all duration-300 animate-fade-in-up bg-transparent hover:bg-muted/40 hover:shadow-lg"
                   style={{ animationDelay: `${index * 100}ms`}}
                 >
                     <CardContent className="p-4 aspect-[4/3] flex-grow">

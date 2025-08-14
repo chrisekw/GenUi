@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 
 export default function MyComponentsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -164,7 +164,7 @@ export default function MyComponentsPage() {
         {components.map((item, index) => (
            <Card 
             key={item.id}
-            className="group relative flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in-up bg-muted/30"
+            className="group relative flex flex-col overflow-hidden transition-all duration-300 animate-fade-in-up bg-transparent hover:bg-muted/40 hover:shadow-lg"
             style={{ animationDelay: `${index * 100}ms`}}
           >
               <CardContent className="p-4 aspect-[4/3] flex-grow">
