@@ -64,17 +64,17 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
   ];
 
   const handleSuggestionClick = (item: { text: string, prompt: string}) => {
-    if (item.text === 'Random Suggestion') {
-        const randomIndex = Math.floor(Math.random() * samplePrompts.length);
-        setPrompt(samplePrompts[randomIndex]);
+    if (item.text === 'Landing Page' || item.text === 'Clone URL') {
+        toast({
+            title: 'Coming Soon!',
+            description: `The ${item.text} feature is currently in development.`,
+        });
         return;
     }
 
-    if (item.text === 'Clone URL') {
-        toast({
-            title: 'Coming Soon!',
-            description: 'The Clone URL feature is currently in development.',
-        });
+    if (item.text === 'Random Suggestion') {
+        const randomIndex = Math.floor(Math.random() * samplePrompts.length);
+        setPrompt(samplePrompts[randomIndex]);
         return;
     }
 
