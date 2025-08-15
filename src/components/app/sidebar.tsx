@@ -66,8 +66,15 @@ export function Sidebar() {
           </nav>
         </div>
         <div className="mt-auto p-4">
-            <div className="pb-4">
+            <div className="pb-4 space-y-4">
               <a target="_blank" rel="noopener noreferrer" href="https://saaswheel.com"><img style={{height: '54px'}} height="54" src="https://saaswheel.com/assets/images/badge.png" alt="SaaS Wheel" /></a>
+              <a href="https://findly.tools/genoui?utm_source=genoui" target="_blank">
+                <img 
+                  src="https://findly.tools/badges/findly-tools-badge-light.svg" 
+                  alt="Featured on findly.tools" 
+                  width="150" 
+                />
+              </a>
             </div>
            {user ? (
              <DropdownMenu>
