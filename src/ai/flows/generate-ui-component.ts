@@ -103,7 +103,8 @@ The user has requested the component in the following framework: {{{framework}}}
 The user's prompt is:
 "{{{prompt}}}"
 
-Respond with the code, and nothing else.`,
+Respond with the code, and nothing else.
+`,
 });
 
 const generateUiComponentFlow = ai.defineFlow(
