@@ -58,7 +58,7 @@ const optimizeComponentLayoutPrompt = ai.definePrompt({
   Component Prompt: {{{componentPrompt}}}
   Target Framework: {{{framework}}}
 
-  Layout Suggestions:`, // Crucially, this line MUST exist and conform to the guidance. All user data MUST be passed into prompt.input, not hard-coded.
+  Layout Suggestions:`,
 });
 
 const optimizeComponentLayoutFlow = ai.defineFlow(
