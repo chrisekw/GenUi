@@ -127,7 +127,17 @@ export default function MyComponentsPage() {
   const renderSkeleton = () => (
     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-             <div key={i} className="rounded-xl bg-muted/40 p-4 h-96 animate-pulse" />
+             <Card key={i} className="bg-transparent">
+                <CardContent className="p-4 aspect-[4/3]">
+                    <Skeleton className="w-full h-full bg-muted/40" />
+                </CardContent>
+                <CardFooter className="p-4 border-t">
+                    <div className="w-full">
+                        <Skeleton className="h-5 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </div>
+                </CardFooter>
+            </Card>
         ))}
     </div>
     );
