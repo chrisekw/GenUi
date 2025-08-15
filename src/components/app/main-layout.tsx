@@ -26,6 +26,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Sidebar } from './sidebar';
 import { CommunityGallery } from './community-gallery';
 import { Footer } from './footer';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 export type Framework = 'html' | 'tailwindcss';
 
@@ -61,12 +62,12 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
     { icon: Sparkles, text: 'Animate', prompt: 'Please add a subtle entrance animation (fade-in and slide-up), a hover effect (lift and grow), and a pressed state (scale down). Ensure it is performant and respects reduced motion.' },
     { icon: CodeXml, text: 'Random', prompt: '' },
     { icon: ImageIcon, text: 'Image', prompt: 'A component that looks like the image provided.' },
-    { icon: LinkIcon, text: 'Clone URL', prompt: '' },
+    { icon: LinkIcon, text: 'Clone URL', prompt: '', comingSoon: true },
   ];
 
-  const handleSuggestionClick = (item: { text: string, prompt: string}) => {
+  const handleSuggestionClick = (item: { text: string, prompt: string, comingSoon?: boolean }) => {
     if (item.text === 'Clone URL') {
-        setShowCloneDialog(true);
+        // setShowCloneDialog(true); // Keep this disabled for now
         return;
     }
     
@@ -181,12 +182,31 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
                 </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center gap-2">
-            {suggestionButtons.map((item, index) => (
-                <Button key={index} variant="outline" className="rounded-lg h-auto" onClick={() => handleSuggestionClick(item)}>
-                  <item.icon className="h-4 w-4 mr-2" />
-                  <span>{item.text}</span>
-                </Button>
-            ))}
+            {suggestionButtons.map((item, index) => {
+                const button = (
+                     <Button key={index} variant="outline" className="rounded-lg h-auto" onClick={() => handleSuggestionClick(item)} disabled={item.comingSoon}>
+                        <item.icon className="h-4 w-4 mr-2" />
+                        <span>{item.text}</span>
+                    </Button>
+                );
+
+                if (item.comingSoon) {
+                    return (
+                        <TooltipProvider key={index}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="w-full">{button}</div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Coming Soon</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )
+                }
+
+                return button;
+            })}
             </div>
         </div>
         </div>
