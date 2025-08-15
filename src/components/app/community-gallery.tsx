@@ -101,11 +101,11 @@ export function CommunityGallery() {
   const renderSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {Array.from({ length: 4 }).map((_, i) => (
-        <Card key={i} className="bg-transparent">
-            <CardContent className="p-4 aspect-[4/3]">
-                <Skeleton className="w-full h-full bg-muted/40" />
+        <Card key={i} className="bg-transparent border-none shadow-none">
+            <CardContent className="p-0 aspect-[4/3] bg-muted/40 rounded-lg">
+                <Skeleton className="w-full h-full" />
             </CardContent>
-            <CardFooter className="p-4 border-t">
+            <CardFooter className="p-0 pt-4">
                 <div className="w-full">
                     <Skeleton className="h-5 w-3/4 mb-2" />
                     <Skeleton className="h-4 w-1/2" />
@@ -132,14 +132,14 @@ export function CommunityGallery() {
           {components.map((item) => (
              <Card 
                 key={item.id}
-                className="group relative flex flex-col overflow-hidden transition-all duration-300 animate-fade-in-up bg-transparent hover:bg-muted/40 hover:shadow-lg"
+                className="group relative flex flex-col overflow-hidden transition-all duration-300 animate-fade-in-up bg-transparent border-none shadow-none"
                 >
-                <CardContent className="p-4 aspect-[4/3] flex-grow">
-                    <Link href={`/component/${item.id}`} className="block w-full h-full bg-background rounded-md border shadow-sm overflow-hidden">
+                <CardContent className="p-0 aspect-[4/3] flex-grow bg-muted/20 rounded-lg overflow-hidden border">
+                    <Link href={`/component/${item.id}`} className="block w-full h-full bg-background overflow-hidden">
                         <ComponentRenderer html={item.previewHtml} />
                     </Link>
                 </CardContent>
-                <CardFooter className="flex items-center justify-between p-4 bg-card border-t">
+                <CardFooter className="flex items-center justify-between p-0 pt-4">
                     <div className='flex-grow overflow-hidden'>
                         <Link href={`/component/${item.id}`}><p className="font-semibold truncate text-sm hover:underline">{item.name}</p></Link>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">

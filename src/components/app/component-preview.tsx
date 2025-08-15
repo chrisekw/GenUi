@@ -261,7 +261,7 @@ export function ComponentPreview({
                             if (value) setViewport(value);
                         }}
                         aria-label="Viewport size"
-                        className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background rounded-lg p-1"
+                        className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background rounded-lg p-1 shadow-md"
                     >
                         <ToggleGroupItem value="mobile" aria-label="Mobile viewport">
                             <Smartphone className="h-4 w-4" />
@@ -278,7 +278,7 @@ export function ComponentPreview({
                         ref={previewRef}
                         className={cn(
                             "relative h-full transition-all duration-300 ease-in-out w-full",
-                            "bg-background shadow-lg rounded-lg border"
+                            "bg-background shadow-lg rounded-lg border flex items-center justify-center"
                         )}
                         style={{ maxWidth: viewportSizes[viewport] }}
                     >
@@ -347,5 +347,3 @@ export function ComponentPreview({
     </div>
   )
 }
-
-    
