@@ -99,14 +99,13 @@ DO NOT:
 OUTPUT FORMAT
 Your response must be a single code block of the generated component.
 
-{{#if imageUrl}}
-You have been provided an image of a UI component. Your task is to replicate the component in the image.
-Image: {{media url=imageUrl}}
-{{/if}}
-
 The user has requested the component in the following framework: {{{framework}}}
 The user's prompt is:
 "{{{prompt}}}"
+
+{{#if imageUrl}}
+Image: {{media url=imageUrl}}
+{{/if}}
 
 Respond with the code, and nothing else.
 `,
