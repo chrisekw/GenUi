@@ -25,6 +25,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Sidebar } from './sidebar';
 import { CommunityGallery } from './community-gallery';
+import { Footer } from './footer';
 
 export type Framework = 'html' | 'tailwindcss';
 
@@ -354,17 +355,20 @@ export function MainLayout() {
         <Header />
         <main className="flex flex-1 flex-col bg-muted/40">
             {activeView === 'prompt' && (
-                <div className="flex-1 overflow-y-auto">
-                    <PromptView 
-                        prompt={prompt}
-                        setPrompt={setPrompt}
-                        onGenerate={onGenerate}
-                        onClone={onClone}
-                        isLoading={isLoading}
-                        imageUrl={imageUrl}
-                        setImageUrl={setImageUrl}
-                    />
-                    <CommunityGallery />
+                <div className="flex-1 flex flex-col">
+                    <div className="flex-1 overflow-y-auto">
+                        <PromptView 
+                            prompt={prompt}
+                            setPrompt={setPrompt}
+                            onGenerate={onGenerate}
+                            onClone={onClone}
+                            isLoading={isLoading}
+                            imageUrl={imageUrl}
+                            setImageUrl={setImageUrl}
+                        />
+                        <CommunityGallery />
+                    </div>
+                    <Footer />
                 </div>
             )}
             {activeView === 'preview' && (
