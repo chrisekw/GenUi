@@ -102,7 +102,6 @@ Your response must be a single code block of the generated component.
 The user has requested the component in the following framework: {{{framework}}}
 The user's prompt is:
 "{{{prompt}}}"
-Image: {{media url=imageUrl}}
 
 Respond with the code, and nothing else.
 `,
