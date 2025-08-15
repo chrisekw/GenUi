@@ -9,7 +9,7 @@ import {
   ArrowUp,
   Image as ImageIcon,
   CodeXml,
-  Layout,
+  Sparkles,
   Link as LinkIcon,
   X,
   Wand2
@@ -57,31 +57,38 @@ function PromptView({ prompt, setPrompt, onGenerate, onClone, isLoading, imageUr
   const { toast } = useToast();
   
   const suggestionButtons = [
-    { icon: Layout, text: 'Landing Page', prompt: 'A professional landing page for a SaaS product. It should include a navigation bar, a hero section with a call-to-action, a features section with three columns, a pricing table with three tiers, a customer testimonials section, and a footer.' },
-    { icon: CodeXml, text: 'Random Suggestion', prompt: '' },
-    { icon: ImageIcon, text: 'Image-based', prompt: 'A component that looks like the image provided.' },
+    { icon: Sparkles, text: 'Animate', prompt: 'Please add a subtle entrance animation (fade-in and slide-up), a hover effect (lift and grow), and a pressed state (scale down). Ensure it is performant and respects reduced motion.' },
+    { icon: CodeXml, text: 'Random', prompt: '' },
+    { icon: ImageIcon, text: 'Image', prompt: 'A component that looks like the image provided.' },
     { icon: LinkIcon, text: 'Clone URL', prompt: '' },
   ];
 
   const handleSuggestionClick = (item: { text: string, prompt: string}) => {
-    if (item.text === 'Landing Page' || item.text === 'Clone URL') {
-        toast({
-            title: 'Coming Soon!',
-            description: `The ${item.text} feature is currently in development.`,
-        });
+    if (item.text === 'Clone URL') {
+        setShowCloneDialog(true);
+        return;
+    }
+    
+    if (item.text === 'Random') {
+        const randomIndex = Math.floor(Math.random() * samplePrompts.length);
+        setPrompt(samplePrompts[randomIndex]);
         return;
     }
 
-    if (item.text === 'Random Suggestion') {
-        const randomIndex = Math.floor(Math.random() * samplePrompts.length);
-        setPrompt(samplePrompts[randomIndex]);
+    if (item.text === 'Animate') {
+        if (!prompt.trim()) {
+            toast({ title: 'Please enter a prompt first', description: 'The animate feature adds to your existing prompt.', variant: 'destructive'});
+            return;
+        }
+        setPrompt(prev => `${prev.trim()}. ${item.prompt}`);
+        toast({ title: 'Animation added to prompt!'});
         return;
     }
 
     const newPrompt = item.prompt;
     setPrompt(newPrompt);
 
-    if (item.text === 'Image-based') {
+    if (item.text === 'Image') {
         handleUploadClick();
     }
   }
